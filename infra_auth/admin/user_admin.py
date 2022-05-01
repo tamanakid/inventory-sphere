@@ -24,6 +24,7 @@ class UserAdmin(DefaultUserAdmin):
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
+    list_filter = ['client', 'is_superuser']
     list_display = ('email', 'client_name', 'first_name', 'last_name')
     ordering = ['client']
 
