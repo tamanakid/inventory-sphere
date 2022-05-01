@@ -38,6 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'corsheaders',
+    'api_internal.apps.ApiInternalConfig',
+    'infra_auth.apps.InfraAuthConfig',
+    'infra_custom.apps.InfraCustomConfig'
 ]
 
 MIDDLEWARE = [
@@ -48,9 +53,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
 ]
 
-ROOT_URLCONF = 'inventorysphere.urls'
+ROOT_URLCONF = '_app_config.urls'
 
 TEMPLATES = [
     {
@@ -68,7 +74,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'inventorysphere.wsgi.application'
+WSGI_APPLICATION = '_app_config.wsgi.application'
 
 
 # Database
@@ -84,6 +90,21 @@ DATABASES = {
         'PORT': 5432,
     }
 }
+
+
+# Custom Configuration
+
+
+MIGRATION_MODULES = {
+    'infra_auth': 'infra_auth.migrations',
+    'infra_custom': 'infra_custom.migrations',
+}
+
+
+# Custom Auth User
+
+AUTH_USER_MODEL = 'infra_auth.User'
+
 
 
 # Password validation
