@@ -7,6 +7,7 @@ from . import views
 router = routers.DefaultRouter()
 
 router.register('location_levels', views.LocationLevelViewSet)
+router.register('locations', views.LocationViewSet)
 
 
 print(router.get_urls())
