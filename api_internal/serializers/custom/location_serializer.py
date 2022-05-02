@@ -18,4 +18,4 @@ class LocationSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Location
-		fields = ('id', 'name', 'level', 'level_is_root_storage_level', 'children')
+		fields = ('id', 'name', 'level', 'level_is_root_storage_level', 'parent', 'children')

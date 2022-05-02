@@ -5,7 +5,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
 
 from infra_custom.models import LocationLevel
-from api_internal.serializers import LocationLevelSerializer, LocationLevelRecursiveSerializer
+from api_internal.serializers import LocationLevelFlatSerializer, LocationLevelChildrenSerializer, LocationLevelCreateSerializer, LocationLevelListSerializer
 
 
 # TODO: This permission class is actually quite reusable
@@ -19,7 +19,6 @@ class LocationLevelViewPermissions(BasePermission):
 
 class LocationLevelViewSet(viewsets.ModelViewSet):
 	queryset = LocationLevel.objects.all()
-	serializer_class = LocationLevelSerializer
 	permission_classes = [LocationLevelViewPermissions]
 
 	''' Internal View Methods '''
@@ -35,14 +34,48 @@ class LocationLevelViewSet(viewsets.ModelViewSet):
 
 
 	def get_serializer_class(self):
-		return LocationLevelRecursiveSerializer if self.action == 'list' else LocationLevelSerializer
-
+		if self.action == 'retrieve':
+			return LocationLevelChildrenSerializer
+		if self.action == 'destroy':
+			return LocationLevelFlatSerializer
+		if self.action == 'list':
+			return LocationLevelListSerializer
+		if self.action == 'create':
+			return LocationLevelCreateSerializer
+		return LocationLevelListSerializer
 
 	''' Custom Methods '''
 
 
 	''' Internal Endpoints '''
 	def list(self, request):
-		location_levels = self.get_queryset(root_only=True)
-		response_content = self.get_serializer(location_levels, many=True).data
-		return Response(response_content)
+		queryset = self.get_queryset(root_only=True)
+		# No need for pagination in tree lists?
+		serializer = self.get_serializer(queryset, many=True)
+		return Response(serializer.data)
+
+	def create(self, request, *args, **kwargs):
+		root_object = request.data
+		self.create_recursive(root_object, parent_id=root_object.get('parent'))
+		return Response(None, status=status.HTTP_201_CREATED)
+	
+	def create_recursive(self, obj, *args, **kwargs):
+		parent = LocationLevel.objects.get(pk=kwargs.get('parent_id')) if kwargs.get('parent_id') is not None else None
+		instance = LocationLevel.objects.create(
+			client=self.request.user.client,
+			parent=parent,
+			name=obj.get('name'),
+			is_root_storage_level=obj.get('is_root_storage_level')
+		)
+		instance.save()
+
+		children = obj.get('children')
+		instance_id = instance.id if (instance.id is not None) else 100
+		for child in children:
+			self.create_recursive(child, parent_id=instance_id)
+		
+
+	
+	# def perform_create(self, serializer):
+	# 	serializer.save(client=self.request.user.client)
+	# 	return serializer
