@@ -5,6 +5,8 @@
         "name": "Run Django",
         "type": "python",
         "request": "attach",
+        "justMyCode": false,
+        "django": true,
         "pathMappings": [
           {
             "localRoot": "${workspaceFolder}",
