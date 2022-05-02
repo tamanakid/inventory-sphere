@@ -16,6 +16,7 @@ services:
       - .:/code
     ports:
       - "8000:8000"
+      - "3000:3000" # For debugpy
     environment:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
