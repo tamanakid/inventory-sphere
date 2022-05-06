@@ -1,13 +1,17 @@
 from rest_framework import serializers
 
 from infra_custom.models import LocationLevel
-from api_internal.serializers import RecursiveField
+from api_internal.serializers import RecursiveField, BaseAPISerializer, BaseAPIModelSerializer
 
 
-class LocationLevelFlatSerializer(serializers.ModelSerializer):
+class LocationLevelFlatSerializer(BaseAPIModelSerializer):
 	class Meta:
 		model = LocationLevel
 		fields = ('id', 'name', 'is_root_storage_level', 'parent')
+	
+	# May be redundant
+	def create(self, validated_data):
+		return super().create(validated_data)
 
 
 class LocationLevelChildrenSerializer(serializers.ModelSerializer):
@@ -32,12 +36,3 @@ class LocationLevelCreateSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = LocationLevel
 		fields = ('name', 'is_root_storage_level', 'children', 'parent')
-	
-	# def create(self, validated_data):
-	# 	self.create_children()
-	# 	return location_level
-	
-	# @staticmethod
-	# # https://gist.github.com/abirafdirp/c11ee2d7788f3643f29f503b4f548cdd
-	# def create_children():
-	# 	pass

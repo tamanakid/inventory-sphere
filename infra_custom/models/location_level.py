@@ -55,6 +55,9 @@ class LocationLevel(models.Model):
 
     def get_direct_descendants(self):
         return LocationLevel.objects.filter(parent=self)
+    
+    def get_siblings(self, **kwargs):
+        return LocationLevel.objects.filter(parent=self.parent, name=kwargs.get('name'))
 
     # Returns a list with direct descendants, with all nested descendants within
     # https://stackoverflow.com/a/29088221/8417780
@@ -69,7 +72,10 @@ class LocationLevel(models.Model):
     def save(self, *args, **kwargs):
         if (self.parent is not None) and (self.parent.client != self.client):
             raise ValidationError(f'The parent LocationLevel must be of the same client')
-
+        
+        if self.get_siblings(name=self.name):
+            raise ValidationError(f'A sibling was found with the same name: {self.name}')
+        
         if self.is_root_storage_level:
             print('Checking if ancestors or descendants already have User Scope...')
             ancestors = self.get_ancestors()
