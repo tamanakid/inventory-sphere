@@ -74,18 +74,19 @@ class LocationLevel(models.Model):
             raise ValidationError(f'The parent LocationLevel must be of the same client')
         
         if self.get_siblings(name=self.name):
-            raise ValidationError(f'A sibling was found with the same name: {self.name}')
+            raise ValidationError(f'A sibling was found with the same name: {self.name}', None, { 'field': 'parent' })
+            # raise ValidationError(f'A sibling was found with the same name: {self.name}') -> Example of _root error
         
         if self.is_root_storage_level:
             print('Checking if ancestors or descendants already have User Scope...')
             ancestors = self.get_ancestors()
             for ancestor in ancestors:
                 if ancestor.is_root_storage_level:
-                    raise ValidationError(f'Another ancestor Level already has User Scope: {ancestor.name}')
+                    raise ValidationError(f'Another ancestor Level already has User Scope: {ancestor.name}', None, { 'field': 'is_root_storage_level' })
 
             descendants = self.get_descendants_list()
             for descendant in descendants:
                 if descendant.is_root_storage_level:
-                    raise ValidationError(f'Another descendant Level already has User Scope: {descendant.name}')
+                    raise ValidationError(f'Another descendant Level already has User Scope: {descendant.name}', None, { 'field': 'is_root_storage_level' })
 
         super(LocationLevel, self).save(*args, **kwargs)
