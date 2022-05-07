@@ -4,13 +4,13 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
 
-from api_internal.views import BaseView #BaseAPIView
+from api_internal.views import BaseApiInternalView #BaseAPIView
 
 from infra_custom.models import LocationLevel
 from api_internal.serializers import LocationLevelFlatSerializer, LocationLevelChildrenSerializer, LocationLevelListSerializer
 
 
-class LocationLevelsListView(BaseView):
+class LocationLevelsListView(BaseApiInternalView):
 
 	def get_queryset(self, *args, **kwargs):
 		root_only = kwargs.get('root_only')
@@ -39,7 +39,7 @@ class LocationLevelsListView(BaseView):
 
 
 
-class LocationLevelView(BaseView):
+class LocationLevelView(BaseApiInternalView):
 	lookup_url_kwarg = 'id'
 
 	def get_queryset(self, *args, **kwargs):

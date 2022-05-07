@@ -1,8 +1,10 @@
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import BasePermission
 
+from _app_config.exceptions import BaseExceptionView
 
-class BaseViewPermissions(BasePermission):
+
+class BaseApiInternalViewPermissions(BasePermission):
 	def has_permission(self, request, view):
 		return (not request.user.is_anonymous) and (request.user.client is not None)
 
@@ -10,8 +12,9 @@ class BaseViewPermissions(BasePermission):
 		return (not request.user.is_anonymous) and (request.user.client is not None) and (request.user.client == object.client)
 
 
-class BaseView(GenericAPIView):
-    permission_classes = [BaseViewPermissions]
+
+class BaseApiInternalView(GenericAPIView):
+    permission_classes = [BaseApiInternalViewPermissions]
 
     @property
     def client(self):
@@ -24,3 +27,7 @@ class BaseView(GenericAPIView):
             'view': self,
             'client': self.client
         }
+    
+    # Override for BaseExceptionView
+    def exception_handler(self, exc, context):
+        super().exception_handler(exc, context)

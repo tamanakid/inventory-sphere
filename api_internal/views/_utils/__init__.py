@@ -1,1 +1,1 @@
-from .base_view import BaseView
+from .base_api_internal_view import BaseApiInternalView
