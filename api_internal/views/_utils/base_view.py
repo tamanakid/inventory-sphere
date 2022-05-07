@@ -13,10 +13,14 @@ class BaseViewPermissions(BasePermission):
 class BaseView(GenericAPIView):
     permission_classes = [BaseViewPermissions]
 
+    @property
+    def client(self):
+        return self.request.user.client if (not self.request.user.is_anonymous) else None
+
     def get_serializer_context(self):
         return {
             'request': self.request,
             'format': self.format_kwarg,
             'view': self,
-            'client': self.request.user.client
+            'client': self.client
         }

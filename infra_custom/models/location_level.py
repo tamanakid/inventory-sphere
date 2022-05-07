@@ -57,7 +57,7 @@ class LocationLevel(models.Model):
         return LocationLevel.objects.filter(parent=self)
     
     def get_siblings(self, **kwargs):
-        return LocationLevel.objects.filter(parent=self.parent, name=kwargs.get('name'))
+        return LocationLevel.objects.filter(parent=self.parent, **kwargs)
 
     # Returns a list with direct descendants, with all nested descendants within
     # https://stackoverflow.com/a/29088221/8417780

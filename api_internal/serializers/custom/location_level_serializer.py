@@ -22,17 +22,9 @@ class LocationLevelChildrenSerializer(serializers.ModelSerializer):
 		fields = ('id', 'name', 'is_root_storage_level', 'parent', 'children')
 
 
-class LocationLevelListSerializer(serializers.ModelSerializer):
+class LocationLevelListSerializer(BaseAPIModelSerializer):
 	children = RecursiveField(many=True, read_only=True)
 
 	class Meta:
 		model = LocationLevel
 		fields = ('id', 'name', 'is_root_storage_level', 'children')
-
-
-class LocationLevelCreateSerializer(serializers.ModelSerializer):
-	children = RecursiveField(many=True)
-
-	class Meta:
-		model = LocationLevel
-		fields = ('name', 'is_root_storage_level', 'children', 'parent')
