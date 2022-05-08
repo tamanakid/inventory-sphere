@@ -61,7 +61,7 @@ class LocationLevelView(BaseView):
 		serializer = self.get_serializer(location_level, data=request.data)
 		serializer.is_valid(raise_exception=True)
 		serializer.save()
-		return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
+		return Response(serializer.data, status=status.HTTP_200_OK)
 	
 	def delete(self, request, id):
 		location_level = self.get_object()
