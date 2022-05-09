@@ -152,5 +152,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # DRF Configuration
 
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': '_app_config._utils.api_exception_handler',
+    'EXCEPTION_HANDLER': '_app_config.response_handlers.api_exception_handler',
+    'DEFAULT_RENDERER_CLASSES': (
+        '_app_config.response_handlers.APIRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer'
+    ),
 }
