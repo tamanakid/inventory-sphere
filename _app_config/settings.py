@@ -169,12 +169,11 @@ REST_FRAMEWORK = {
 # JSON Web Tokens simplejwt Configuration
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1), # TODO minutes=15
-    'REFRESH_TOKEN_LIFETIME': timedelta(hours=4),
-    'ROTATE_REFRESH_TOKENS': False,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=2),
+    'ROTATE_REFRESH_TOKENS': True,
     'AUTH_HEADER_TYPES': ('Bearer'),
-    # 'TOKEN_USER_CLASS': 'infra_auth.User', # 'rest_framework_simplejwt.models.TokenUser',
-    # 'TOKEN_USER_CLASS': '_app_config.custom_auth.CustomTokenUser',
+    'TOKEN_USER_CLASS': '_app_config.custom_auth.CustomTokenUser',
     'SIGNING_KEY': 'AUTHENTICATION PROJECT SECRET KEY',
     'VERIFYING_KEY': 'AUTHENTICATION PROJECT SECRET KEY',
 }
