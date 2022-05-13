@@ -2,6 +2,7 @@ debugpy==1.5.1
 django==4.0.1
 django-filter==21.1
 djangorestframework==3.13.1
+djangorestframework-simplejwt==5.1.0
 django-environ==0.8.1
 django-cors-headers==3.11.0
 psycopg2==2.9.3

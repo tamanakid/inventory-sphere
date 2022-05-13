@@ -1,21 +1,26 @@
+from django.utils.functional import cached_property
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import BasePermission
+from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
+
+from infra_auth.models import Client
 
 
 class BaseViewPermissions(BasePermission):
 	def has_permission(self, request, view):
-		return (not request.user.is_anonymous) and (request.user.client is not None)
+		return (not request.user.is_anonymous) and (view.client is not None)
 
 	def has_object_permission(self, request, view, object):
-		return (not request.user.is_anonymous) and (request.user.client is not None) and (request.user.client == object.client)
+		return (not request.user.is_anonymous) and (view.client is not None) and (view.client == object.client)
 
 
 class BaseView(GenericAPIView):
     permission_classes = [BaseViewPermissions]
+    authentication_classes = [JWTTokenUserAuthentication]
 
-    @property
+    @cached_property
     def client(self):
-        return self.request.user.client if (not self.request.user.is_anonymous) else None
+        return Client.objects.get(id=self.request.user.client_id)
 
     def get_serializer_context(self):
         return {

@@ -1,3 +1,4 @@
+from datetime import *
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -9,6 +10,7 @@ class User(AbstractUser):
     email = models.EmailField('email address', unique=True)
     first_name = models.CharField(blank=False, null=False, max_length=32)
     last_name = models.CharField(blank=False, null=False, max_length=32)
+    last_password_change = models.DateTimeField(blank=False, null=False, auto_now_add=True)
     client = models.ForeignKey(
         'infra_auth.Client',
         related_name="users",
@@ -35,3 +37,7 @@ class User(AbstractUser):
             raise ValueError('Regular users associated to a Client cannot have superuser or staff access')
 
         super(User, self).save(*args, **kwargs)
+    
+    def set_password(self, raw_password):
+        super().set_password(raw_password)
+        self.last_password_change = datetime.now()
