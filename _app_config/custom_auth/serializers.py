@@ -9,5 +9,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
 
         token['client_id'] = user.client.id
+        token['role'] = user.role
 
         return token
