@@ -5,12 +5,14 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
 
 from api_internal.views import BaseView #BaseAPIView
+from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
 
 from infra_custom.models import LocationLevel
 from api_internal.serializers import LocationLevelFlatSerializer, LocationLevelChildrenSerializer, LocationLevelListSerializer
 
 
-class LocationLevelsListView(BaseView):
+class LocationLevelsBaseView(BaseView):
+	permission_classes = (BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission)
 
 	def get_queryset(self, *args, **kwargs):
 		root_only = kwargs.get('root_only')
@@ -19,6 +21,10 @@ class LocationLevelsListView(BaseView):
 			return LocationLevel.objects.filter(parent=None) if root_only else LocationLevel.objects.all()
 
 		return self.client.location_levels.filter(parent=None) if root_only else self.client.location_levels.all()
+
+
+
+class LocationLevelsListView(LocationLevelsBaseView):
 	
 	def get_serializer_class(self):
 		if self.request.method == 'POST':
@@ -39,14 +45,8 @@ class LocationLevelsListView(BaseView):
 
 
 
-class LocationLevelView(BaseView):
+class LocationLevelView(LocationLevelsBaseView):
 	lookup_url_kwarg = 'id'
-
-	def get_queryset(self, *args, **kwargs):
-		root_only = kwargs.get('root_only')
-		if self.request.user.is_superuser:
-			return LocationLevel.objects.filter(parent=None) if root_only else LocationLevel.objects.all()
-		return self.client.location_levels.filter(parent=None) if root_only else self.client.location_levels.all()
 
 	def get_serializer_class(self):
 		return LocationLevelChildrenSerializer

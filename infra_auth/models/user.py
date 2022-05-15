@@ -6,6 +6,14 @@ from infra_auth.managers import UserManager
 
 
 class User(AbstractUser):
+
+    # Permission Roles
+    class Role(models.TextChoices):
+        INVENTORY_MANAGER = 'IM', 'Inventory Manager'
+        STORAGE_MANAGER = 'SM', 'Storage Manager'
+        STORAGE_EMPLOYEE = 'SE', 'Storage Employee'
+        DATA_EMPLOYEE = 'DE', 'Data Employee'
+    
     username = None
     email = models.EmailField('email address', unique=True)
     first_name = models.CharField(blank=False, null=False, max_length=32)
@@ -18,7 +26,12 @@ class User(AbstractUser):
         on_delete=models.CASCADE,
         null=True,
     )
-
+    role = models.CharField(
+        max_length=2,
+        choices=Role.choices,
+        default=Role.STORAGE_EMPLOYEE,
+    )
+    
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []

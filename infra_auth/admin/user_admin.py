@@ -13,20 +13,20 @@ class UserAdmin(DefaultUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'client', 'first_name', 'last_name', 'password1', 'password2'),
+            'fields': ('email', 'client', 'role', 'first_name', 'last_name', 'password1', 'password2'),
         }),
     )
     # For edition
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser','groups', 'user_permissions')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'role', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
 
-    list_filter = ['client', 'is_superuser']
-    list_display = ('email', 'client_name', 'first_name', 'last_name')
-    ordering = ['client']
+    list_filter = ['client', 'is_superuser', 'role']
+    list_display = ('email', 'client_name', 'role', 'first_name', 'last_name')
+    ordering = ['client', 'role']
 
     @admin.display(ordering='client__name')
     def client_name(self, obj):

@@ -4,18 +4,11 @@ from rest_framework.permissions import BasePermission
 from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 
 from infra_auth.models import Client
-
-
-class BaseViewPermissions(BasePermission):
-	def has_permission(self, request, view):
-		return (not request.user.is_anonymous) and (view.client is not None)
-
-	def has_object_permission(self, request, view, object):
-		return (not request.user.is_anonymous) and (view.client is not None) and (view.client == object.client)
+from api_internal.permissions import BaseAPIPermission
 
 
 class BaseView(GenericAPIView):
-    permission_classes = [BaseViewPermissions]
+    permission_classes = [BaseAPIPermission]
     authentication_classes = [JWTTokenUserAuthentication]
 
     @cached_property
