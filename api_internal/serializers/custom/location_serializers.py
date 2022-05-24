@@ -5,21 +5,15 @@ from api_internal.serializers import RecursiveField
 from api_internal.serializers.custom.location_level_serializers import LocationLevelFlatSerializer
 
 
-# class LocationRecursiveSerializer(serializers.ModelSerializer):
-# 	children = RecursiveField(many=True, read_only=True)
-# 	is_root_storage_level = serializers.ReadOnlyField(source='level.is_root_storage_level')
+class LocationRecursiveField(serializers.Serializer):
+	def to_representation(self, value):
+		serializer = (
+			LocationFlatSerializer(value, context=self.context)
+			if not self.context["all_locations"] and value.level.is_root_storage_level
+			else self.parent.parent.__class__(value, context=self.context)
+		)
+		return serializer.data
 
-# 	class Meta:
-# 		model = Location
-# 		fields = ('id', 'name', 'level', 'is_root_storage_level', 'children')
-
-
-# class LocationSerializer(serializers.ModelSerializer):
-# 	is_root_storage_level = serializers.ReadOnlyField(source='level.is_root_storage_level')
-
-# 	class Meta:
-# 		model = Location
-# 		fields = ('id', 'name', 'level', 'is_root_storage_level', 'parent', 'children')
 
 
 # TODO: This is to become reusable, just as the RecursiveField
@@ -59,7 +53,7 @@ class LocationChildrenSerializer(serializers.ModelSerializer):
 
 
 class LocationListSerializer(serializers.ModelSerializer):
-	children = RecursiveField(many=True, read_only=True)
+	children = LocationRecursiveField(many=True, read_only=True)
 	is_root_storage_level = serializers.ReadOnlyField(source='level.is_root_storage_level')
 
 	class Meta:

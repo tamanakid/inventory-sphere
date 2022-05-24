@@ -54,3 +54,6 @@ class Location(models.Model):
                 raise ValidationError('A Location in the selected Level must have a parent Location')
 
         super(Location, self).save(*args, **kwargs)
+    
+    def is_inside_rsl(self):
+        return False if self.parent is None else (self.parent.level.is_root_storage_level or self.parent.is_inside_rsl())

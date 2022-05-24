@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from logging import Filter
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,16 +16,22 @@ from api_internal.serializers import LocationFlatSerializer, LocationListSeriali
 from infra_custom.models import Location, LocationLevel
 
 
+
 class LocationsBaseView(BaseView):
 	permission_classes = (BaseAPIPermission, ManagerRolesWriteElseReadOnlyPermission)
 
 	def get_queryset(self, *args, **kwargs):
 		root_only = kwargs.get('root_only')
 		
-		if self.request.user.is_superuser:
-			return Location.objects.filter(parent=None) if root_only else Location.objects.all()
+		query = Location.objects.all()
 
-		return Location.objects.filter(parent=None, level__client=self.client) if root_only else Location.objects.filter(level__client=self.client)
+		if not self.request.user.is_superuser:
+			query = query.filter(level__client=self.client)
+			
+		if root_only:
+			query = query.filter(parent=None)
+		
+		return query
 
 
 
@@ -36,9 +43,10 @@ class LocationsListView(LocationsBaseView):
 		return LocationListSerializer
 
 	def get(self, request):
+		all_locations = request.query_params.get('all_locations', '').lower() == 'true'
 		locations = self.get_queryset(root_only=True)
 		# Test how to paginate tree lists
-		serializer = self.get_serializer(locations, many=True)
+		serializer = self.get_serializer(locations, many=True, context={'all_locations': all_locations})
 		return Response(serializer.data, status=status.HTTP_200_OK)
 	
 	def post(self, request):
@@ -87,8 +95,6 @@ class LocationsListView(LocationsBaseView):
 				created_instances.extend(created_children)
 		
 		return created_instances
-
-
 
 
 
