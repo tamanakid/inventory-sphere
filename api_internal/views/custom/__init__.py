@@ -1,2 +1,2 @@
-from .location_level_view import LocationLevelsListView, LocationLevelView
-from .location_view import LocationViewSet
+from .location_level_views import LocationLevelsListView, LocationLevelView
+from .location_views import LocationsListView, LocationsView

@@ -4,11 +4,11 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
 
-from api_internal.views import BaseView #BaseAPIView
+from api_internal.views import BaseView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
+from api_internal.serializers import LocationLevelFlatSerializer, LocationLevelChildrenSerializer, LocationLevelListSerializer
 
 from infra_custom.models import LocationLevel
-from api_internal.serializers import LocationLevelFlatSerializer, LocationLevelChildrenSerializer, LocationLevelListSerializer
 
 
 class LocationLevelsBaseView(BaseView):

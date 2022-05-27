@@ -8,10 +8,6 @@ class LocationLevelFlatSerializer(BaseAPIModelSerializer):
 	class Meta:
 		model = LocationLevel
 		fields = ('id', 'name', 'is_root_storage_level', 'parent')
-	
-	# May be redundant
-	def create(self, validated_data):
-		return super().create(validated_data)
 
 
 class LocationLevelChildrenSerializer(serializers.ModelSerializer):
