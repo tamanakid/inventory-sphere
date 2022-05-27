@@ -67,7 +67,6 @@ class LocationsListView(LocationsBaseView):
 			level=data.get('level'),
 			parent=data.get('parent'),
 		)
-		instance.save()
 
 		# Alternative to saving: 181 DB queries vs 162
 		# instance_serializer = LocationFlatSerializer(data={

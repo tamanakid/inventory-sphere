@@ -47,6 +47,9 @@ class Location(models.Model):
     def __str__(self):
         return self.get_full_path()
 
+    def get_siblings(self, **kwargs):
+        return Location.objects.filter(parent=self.parent, **kwargs)
+
     def save(self, *args, **kwargs):
         if self.parent is not None:
             if self.level.parent != self.parent.level:
@@ -54,6 +57,9 @@ class Location(models.Model):
         else:
             if self.level.parent is not None:
                 raise ValidationError('A Location in the selected Level must have a parent Location')
+        
+        if self.get_siblings(name=self.name):
+            raise ValidationError(f'A sibling was found with the same name: {self.name}', None, { 'field': 'parent' })
 
         super(Location, self).save(*args, **kwargs)
     
