@@ -2,11 +2,13 @@ from django.utils.functional import cached_property
 from django.db import models
 from django.core.exceptions import ValidationError
 
+from utils.data_types import get_roman_numeric_from_integer, get_alphabet_index_from_integer
+
 
 class Location(models.Model):
 
     # Indexing for creational pattern (Not for data storage layer)
-    class StuctureIndex(models.TextChoices):
+    class StructureIndexType(models.TextChoices):
         ALPHABETIC = 'AL', 'Alphabetically (A, B, C, ..Z, AA...)'
         ROMAN = 'RO', 'Roman Numeric (I, II, III...)'
         DECIMAL_1 = 'D1', 'Decimal from 1 (1, 2, 3...)'
@@ -57,3 +59,13 @@ class Location(models.Model):
     
     def is_inside_rsl(self):
         return False if self.parent is None else (self.parent.level.is_root_storage_level or self.parent.is_inside_rsl())
+
+    @classmethod
+    def get_location_index(cls, i, index_type):
+        if index_type == cls.StructureIndexType.ALPHABETIC:
+            return get_alphabet_index_from_integer(i)
+        elif index_type == cls.StructureIndexType.ROMAN:
+            return get_roman_numeric_from_integer(i+1)
+        elif index_type == cls.StructureIndexType.DECIMAL_1:
+            return i + 1
+        return i

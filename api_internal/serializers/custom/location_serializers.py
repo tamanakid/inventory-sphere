@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from infra_custom.models import Location, LocationLevel
-from api_internal.serializers import RecursiveField
+from api_internal.serializers import RecursiveField, ChoiceField
 from api_internal.serializers.custom.location_level_serializers import LocationLevelFlatSerializer
 
 
@@ -16,26 +16,8 @@ class LocationRecursiveField(serializers.Serializer):
 
 
 
-# TODO: This is to become reusable, just as the RecursiveField
-class ChoiceField(serializers.ChoiceField):
-    def to_representation(self, obj):
-        if obj == '' and self.allow_blank:
-            return obj
-        return self._choices[obj]
-
-    def to_internal_value(self, data):
-        # To support inserts with the value
-        if data == '' and self.allow_blank:
-            return ''
-
-        for key, val in self._choices.items():
-            if val == data:
-                return key
-        self.fail('invalid_choice', input=data)
-
-
-
 class LocationFlatSerializer(serializers.ModelSerializer):
+	id = serializers.IntegerField(required=False)
 	is_root_storage_level = serializers.ReadOnlyField(source='level.is_root_storage_level')
 
 	class Meta:
@@ -66,7 +48,7 @@ class LocationListSerializer(serializers.ModelSerializer):
 class LocationStructureFlatSerializer(serializers.Serializer):
 	child_structure = RecursiveField(many=False, read_only=False, required=False, allow_null=True)
 	name = serializers.CharField(required=True)
-	index = ChoiceField(choices=Location.StuctureIndex, required=True)
+	index_type = ChoiceField(choices=Location.StructureIndexType, required=True)
 	locations_count = serializers.IntegerField(min_value=1, required=True)
 	level = LocationLevelFlatSerializer(required=False)
 
