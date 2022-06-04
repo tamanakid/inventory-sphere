@@ -1,12 +1,9 @@
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import BasePermission
 
 from api_internal.views import BaseView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
-from api_internal.serializers import AttributeSerializer, AttributeWithValuesListSerializer, AttributeValueGetSerializer
+from api_internal.serializers import AttributeSerializer, AttributeWithValuesListSerializer
 
 from infra_custom.models import Attribute
 
@@ -29,9 +26,10 @@ class AttributesListView(AttributesBaseView):
         return AttributeSerializer
     
     def get(self, request):
-        attributes = self.get_queryset()
+        attributes = self.paginator.paginate_queryset(self.get_queryset(), request)
         serializer = self.get_serializer(attributes, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.paginator.get_paginated_response(serializer.data)
+        # return Response(serializer.data, status=status.HTTP_200_OK)
 	
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
