@@ -10,6 +10,7 @@ def location_level_form_factory(client):
     class LocationLevelForm(forms.ModelForm):
         parent = forms.ModelChoiceField(
             queryset=LocationLevel.objects.filter(client=client),
+            required=False
         )
     return LocationLevelForm
 
