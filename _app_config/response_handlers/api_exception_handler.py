@@ -16,6 +16,7 @@ This exception is not managed by Django Rest Framework because it occurs after i
 The following exception handler override converts Django's ``ValidationError`` to a DRF one.
 """
 def api_exception_handler(exception, context):
+    print(exception.__str__())
     exception = convert_to_drf_exception(exception)
 
     response = drf_exception_handler(exception, context)

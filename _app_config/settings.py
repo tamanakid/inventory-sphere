@@ -163,14 +163,16 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication'
     ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 5
 }
 
 
 # JSON Web Tokens simplejwt Configuration
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
-    'REFRESH_TOKEN_LIFETIME': timedelta(hours=2),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # minutes=15
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=8), # hours=2
     'ROTATE_REFRESH_TOKENS': True,
     'AUTH_HEADER_TYPES': ('Bearer'),
     'TOKEN_USER_CLASS': '_app_config.custom_auth.CustomTokenUser',

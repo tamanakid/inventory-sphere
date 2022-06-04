@@ -5,11 +5,17 @@ from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 
 from infra_auth.models import Client
 from api_internal.permissions import BaseAPIPermission
+from api_internal.views._utils import APIPaginator
 
 
 class BaseView(GenericAPIView):
     permission_classes = [BaseAPIPermission]
     authentication_classes = [JWTTokenUserAuthentication]
+    pagination_class = APIPaginator
+
+    @cached_property
+    def paginator(self):
+        return APIPaginator()
 
     @cached_property
     def client(self):

@@ -37,9 +37,10 @@ class AttributeValuesListView(AttributeValuesBaseView):
         if attribute is None:
             raise ValidationError('Must specify an attribute')
 
-        attribute_values = self.get_queryset(attribute=attribute)
+        attribute_values = self.paginator.paginate_queryset(self.get_queryset(attribute=attribute), request)
         serializer = self.get_serializer(attribute_values, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.paginator.get_paginated_response(serializer.data)
+        # return Response(serializer.data, status=status.HTTP_200_OK)
 	
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
