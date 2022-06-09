@@ -24,11 +24,20 @@ urlpatterns = [
     path('attributes/', views.AttributesListView.as_view(), name='internal__attributes_list'),
     path('attributes/<int:id>', views.AttributesView.as_view(), name='internal__attributes'),
     path('attributes/delete/', views.AttributesDeleteView.as_view(), name='internal__attributes_delete'),
+
     path('attribute_values/', views.AttributeValuesListView.as_view(), name='internal__attribute_values_list'),
     path('attribute_values/<int:id>', views.AttributeValuesView.as_view(), name='internal__attribute_values'),
     path('attribute_values/delete/', views.AttributeValuesDeleteView.as_view(), name='internal__attribute_values_delete'),
+
+    path('categories/', views.CategoriesListView.as_view(), name='internal__categories_list'),
+    path('categories/tree/', views.CategoriesTreeView.as_view(), name='internal__categories_tree'),
+    path('categories/<int:id>', views.CategoriesView.as_view(), name='internal__categories'),
+    path('categories/<int:id>/children/', views.CategoriesChildrenView.as_view(), name='internal__categories_children'),
+    path('categories/delete/', views.CategoriesDeleteView.as_view(), name='internal__categories_delete'),
+
     path('location_levels/', views.LocationLevelsListView.as_view(), name='internal__location_levels_list'),
     path('location_levels/<int:id>', views.LocationLevelView.as_view(), name='internal__location_levels'),
+
     path('locations/', views.LocationsListView.as_view(), name='internal__locations_list'),
     path('locations/<int:id>', views.LocationsView.as_view(), name='internal__locations'),
 

@@ -20,6 +20,10 @@ class AttributesBaseView(BaseView):
 		return query
 
 
+# TODO: There will be a need to get all the attributes a category will support:
+# This will encompass attributes related to the category and ALL it's ancestors'
+# This is likely better in its own endpoint
+
 class AttributesListView(AttributesBaseView):
 
     def get_serializer_class(self):

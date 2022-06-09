@@ -171,7 +171,7 @@ REST_FRAMEWORK = {
 # JSON Web Tokens simplejwt Configuration
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # minutes=15
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=600), # minutes=15
     'REFRESH_TOKEN_LIFETIME': timedelta(hours=8), # hours=2
     'ROTATE_REFRESH_TOKENS': True,
     'AUTH_HEADER_TYPES': ('Bearer'),
