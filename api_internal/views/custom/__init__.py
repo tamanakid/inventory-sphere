@@ -1,4 +1,5 @@
 from .attribute_views import AttributesListView, AttributesView, AttributesDeleteView
 from .attribute_value_views import AttributeValuesListView, AttributeValuesView, AttributeValuesDeleteView
+from .category_views import CategoriesView, CategoriesListView, CategoriesTreeView, CategoriesChildrenView, CategoriesDeleteView
 from .location_level_views import LocationLevelsListView, LocationLevelView
 from .location_views import LocationsListView, LocationsView
