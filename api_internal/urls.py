@@ -39,7 +39,9 @@ urlpatterns = [
     path('location_levels/<int:id>', views.LocationLevelView.as_view(), name='internal__location_levels'),
 
     path('locations/', views.LocationsListView.as_view(), name='internal__locations_list'),
+    path('locations/tree/', views.LocationsTreeView.as_view(), name='internal__locations_tree'),
     path('locations/<int:id>', views.LocationsView.as_view(), name='internal__locations'),
+    path('locations/delete/', views.LocationsDeleteView.as_view(), name='internal__locations_delete'),
 
 
     #views.PatientViewSet.reverse_action(views.PatientViewSet.get_residence_users.url_name, args=['1'])
