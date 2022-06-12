@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 
 from api_internal.views import BaseView
 from api_internal.permissions import BaseAPIPermission, ManagerRolesWriteElseReadOnlyPermission
-from api_internal.serializers import LocationFlatSerializer, LocationListSerializer, LocationChildrenSerializer, LocationStructureSerializer, LocationStructureFlatSerializer
+from api_internal.serializers import LocationFlatSerializer, LocationTreeSerializer, LocationChildrenSerializer, LocationStructureSerializer
 
 from infra_custom.models import Location, LocationLevel
 
@@ -22,6 +22,7 @@ class LocationsBaseView(BaseView):
 
 	def get_queryset(self, *args, **kwargs):
 		root_only = kwargs.get('root_only')
+		root_storage_only = kwargs.get('root_storage_only')
 		
 		query = Location.objects.all()
 
@@ -30,6 +31,8 @@ class LocationsBaseView(BaseView):
 			
 		if root_only:
 			query = query.filter(parent=None)
+		elif root_storage_only:
+			query = query.filter(level__is_root_storage_level=True)
 		
 		return query
 
@@ -38,14 +41,13 @@ class LocationsBaseView(BaseView):
 class LocationsListView(LocationsBaseView):
 	
 	def get_serializer_class(self):
-		return LocationListSerializer
+		return LocationFlatSerializer if self.request.method == 'GET' else LocationFlatSerializer
 
 	def get(self, request):
-		all_locations = request.query_params.get('all_locations', '').lower() == 'true'
-		locations = self.get_queryset(root_only=True)
+		locations = self.paginator.paginate_queryset(self.get_queryset(root_storage_only=True), request)
 		# Test how to paginate tree lists
-		serializer = self.get_serializer(locations, many=True, context={'all_locations': all_locations})
-		return Response(serializer.data, status=status.HTTP_200_OK)
+		serializer = self.get_serializer(locations, many=True, context={'get_full_path_name': True})
+		return self.paginator.get_paginated_response(serializer.data)
 	
 	def post(self, request):
 		created_locations = self._create_location_from_structure(request.data)
@@ -107,6 +109,19 @@ class LocationsListView(LocationsBaseView):
 
 
 
+class LocationsTreeView(LocationsBaseView):
+    def get_serializer_class(self):
+        return LocationTreeSerializer
+    
+    def get(self, request):
+        all_locations = request.query_params.get('all_locations', '').lower() == 'true'
+        locations = self.get_queryset(root_only=True)
+		# Test how to paginate tree lists
+        serializer = self.get_serializer(locations, many=True, context={'all_locations': all_locations})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
 class LocationsView(LocationsBaseView):
 	lookup_url_kwarg = 'id'
 
@@ -124,8 +139,12 @@ class LocationsView(LocationsBaseView):
 		serializer.is_valid(raise_exception=True)
 		serializer.save()
 		return Response(serializer.data, status=status.HTTP_200_OK)
-	
-	def delete(self, request, id):
-		location = self.get_object()
-		location.delete()
-		return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class LocationsDeleteView(LocationsBaseView):
+	def post(self, request):
+		ids_to_delete = request.data.get('ids', None)
+		locations = self.get_queryset().filter(id__in=ids_to_delete)
+		for location in locations:
+			location.delete()
+		return Response(status=status.HTTP_200_OK)

@@ -6,6 +6,8 @@ from utils.data_types import get_roman_numeric_from_integer, get_alphabet_index_
 
 
 class Location(models.Model):
+    class Meta:
+        ordering = ['-id']
 
     # Indexing for creational pattern (Not for data storage layer)
     class StructureIndexType(models.TextChoices):

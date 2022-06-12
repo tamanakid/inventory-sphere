@@ -20,6 +20,13 @@ class LocationFlatSerializer(serializers.ModelSerializer):
 	id = serializers.IntegerField(required=False)
 	is_root_storage_level = serializers.ReadOnlyField(source='level.is_root_storage_level')
 
+	def to_representation(self, instance):
+		representation = super().to_representation(instance)
+		# Would need an instance lookup if provided a non-instance object (i.e. as in the POST method)
+		if self.context.get('get_full_path_name', False):
+			representation['name'] = instance.get_full_path() 
+		return representation
+
 	class Meta:
 		model = Location
 		fields = ('id', 'name', 'level', 'is_root_storage_level', 'parent')
@@ -34,7 +41,7 @@ class LocationChildrenSerializer(serializers.ModelSerializer):
 		fields = ('id', 'name', 'level', 'is_root_storage_level', 'parent', 'children')
 
 
-class LocationListSerializer(serializers.ModelSerializer):
+class LocationTreeSerializer(serializers.ModelSerializer):
 	children = LocationRecursiveField(many=True, read_only=True)
 	is_root_storage_level = serializers.ReadOnlyField(source='level.is_root_storage_level')
 

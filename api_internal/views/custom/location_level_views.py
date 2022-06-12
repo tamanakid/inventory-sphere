@@ -6,7 +6,7 @@ from rest_framework.permissions import BasePermission
 
 from api_internal.views import BaseView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
-from api_internal.serializers import LocationLevelFlatSerializer, LocationLevelChildrenSerializer, LocationLevelListSerializer
+from api_internal.serializers import LocationLevelFlatSerializer, LocationLevelChildrenSerializer, LocationLevelTreeSerializer
 
 from infra_custom.models import LocationLevel
 
@@ -16,11 +16,16 @@ class LocationLevelsBaseView(BaseView):
 
 	def get_queryset(self, *args, **kwargs):
 		root_only = kwargs.get('root_only')
-		
-		if self.request.user.is_superuser:
-			return LocationLevel.objects.filter(parent=None) if root_only else LocationLevel.objects.all()
+				
+		query = LocationLevel.objects.all()
 
-		return self.client.location_levels.filter(parent=None) if root_only else self.client.location_levels.all()
+		if not self.request.user.is_superuser:
+			query = query.filter(client=self.client)
+			
+		if root_only:
+			query = query.filter(parent=None)
+		
+		return query
 
 
 
@@ -29,19 +34,31 @@ class LocationLevelsListView(LocationLevelsBaseView):
 	def get_serializer_class(self):
 		if self.request.method == 'POST':
 			return LocationLevelFlatSerializer
-		return LocationLevelListSerializer
+		return LocationLevelFlatSerializer
 
 	def get(self, request):
-		location_levels = self.get_queryset(root_only=True)
+		location_levels = self.paginator.paginate_queryset(self.get_queryset(), request)
 		# Test how to paginate tree lists
-		serializer = self.get_serializer(location_levels, many=True)
-		return Response(serializer.data, status=status.HTTP_200_OK)
+		serializer = self.get_serializer(location_levels, many=True, context={'get_full_path_name': True})
+		return self.paginator.get_paginated_response(serializer.data)
 	
 	def post(self, request):
 		serializer = self.get_serializer(data=request.data)
 		serializer.is_valid(raise_exception=True)
 		serializer.save()
 		return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+class LocationLevelsTreeView(LocationLevelsBaseView):
+    def get_serializer_class(self):
+        return LocationLevelTreeSerializer
+    
+    def get(self, request):
+        location_levels = self.get_queryset(root_only=True)
+		# Test how to paginate tree lists
+        serializer = self.get_serializer(location_levels, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
@@ -62,11 +79,6 @@ class LocationLevelView(LocationLevelsBaseView):
 		serializer.is_valid(raise_exception=True)
 		serializer.save()
 		return Response(serializer.data, status=status.HTTP_200_OK)
-	
-	def delete(self, request, id):
-		location_level = self.get_object()
-		location_level.delete()
-		return Response(status=status.HTTP_204_NO_CONTENT)
 
 	'''The following may work for Locations POST requests'''
 	# def create(self, request, *args, **kwargs):
@@ -94,3 +106,12 @@ class LocationLevelView(LocationLevelsBaseView):
 	# def perform_create(self, serializer):
 	# 	serializer.save(client=self.request.user.client)
 	# 	return serializer
+
+
+class LocationLevelsDeleteView(LocationLevelsBaseView):
+	def post(self, request):
+		ids_to_delete = request.data.get('ids', None)
+		location_levels = self.get_queryset().filter(id__in=ids_to_delete)
+		for location_level in location_levels:
+			location_levels.delete()
+		return Response(status=status.HTTP_200_OK)
