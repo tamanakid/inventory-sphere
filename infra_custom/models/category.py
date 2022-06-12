@@ -76,5 +76,14 @@ class Category(models.Model):
         
         if self.get_siblings(name=self.name):
             raise ValidationError(f'A sibling was found with the same name: {self.name}', None, { 'field': 'parent' })
+        
+        '''
+        TODO: should manually validate if an ancestor already has a related attribute.
+        This scenario should merely continue but provide an "info" formatted message.
+        (i.e. This attribute is already appliable in an ancestor category)
+        EDGE-CASE: The only exception for this is:
+            - that the ancestor's related attribute has is_attribute_required=false AND
+            - that the current related attribute is being set to is_attribute_required=true
+        '''
 
         super(Category, self).save(*args, **kwargs)
