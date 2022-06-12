@@ -22,6 +22,7 @@ class LocationFlatSerializer(serializers.ModelSerializer):
 
 	def to_representation(self, instance):
 		representation = super().to_representation(instance)
+		# Would need an instance lookup if provided a non-instance object (i.e. as in the POST method)
 		if self.context.get('get_full_path_name', False):
 			representation['name'] = instance.get_full_path() 
 		return representation
