@@ -9,11 +9,24 @@ from django.core.exceptions import ValidationError
 # TODO: Prolly better to use and handle the DRF ValidationError
 # from rest_framework import exceptions
 
+import django_filters
+from django_filters import rest_framework as filters
+
 from api_internal.views import BaseView
 from api_internal.permissions import BaseAPIPermission, ManagerRolesWriteElseReadOnlyPermission
 from api_internal.serializers import CategoryFlatSerializer, CategoryListSerializer, CategoryTreeSerializer, CategoryDetailsSerializer
 
 from infra_custom.models import Category, Attribute, CategoryAttribute
+
+
+
+class CategoryFilter(filters.FilterSet):
+	name = django_filters.CharFilter(field_name='name', lookup_expr='icontains')
+	attributes = django_filters.NumberFilter(field_name='attributes__id', lookup_expr='exact')
+
+	class Meta:
+		model = Category
+		fields = ['name', 'attributes']
 
 
 
@@ -35,12 +48,14 @@ class CategoriesBaseView(BaseView):
 
 
 class CategoriesListView(CategoriesBaseView):
+	filter_backends = (filters.DjangoFilterBackend,)
+	filterset_class = CategoryFilter
 	
 	def get_serializer_class(self):
 		return CategoryFlatSerializer if self.request.method == 'POST' else CategoryListSerializer
 
 	def get(self, request):
-		categories = self.paginator.paginate_queryset(self.get_queryset(), request)
+		categories = self.paginator.paginate_queryset(self.filter_queryset(self.get_queryset()), request)
 		serializer = self.get_serializer(categories, many=True)
 		return self.paginator.get_paginated_response(serializer.data)
 	
