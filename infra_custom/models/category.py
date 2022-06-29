@@ -29,8 +29,11 @@ class Category(models.Model):
         blank=True,
         null=True,
     )
-    attributes = models.ManyToManyField(Attribute, through='infra_custom.CategoryAttribute')
+    attributes = models.ManyToManyField(Attribute, through='infra_custom.CategoryAttribute', related_name='categories')
 
+    def __str__(self):
+        return self.get_full_path()
+    
     @property
     def full_path(self):
         return self.get_full_path()
@@ -38,10 +41,24 @@ class Category(models.Model):
     def get_full_path(self):
         return f'{self.parent.get_full_path()} > {self.name}' if self.parent is not None else self.name
 
-    def __str__(self):
-        return f'{self.name} ({self.get_full_path()})'
+    
+    def get_category_path_qs(self):
+        if self.parent is not None:
+            category_path = self.get_ancestors_qs()
+            category_path = category_path.union(Category.objects.filter(id=self.id))
+            return category_path
+        else:
+            return Category.objects.filter(id=self.id)
 
-    def get_ancestors(self):
+    def get_ancestors_qs(self):
+        if self.parent is not None:
+            qs_ancestors = self.parent.get_ancestors_qs()
+            qs_ancestors = qs_ancestors.union(Category.objects.filter(id=self.parent.id))
+            return qs_ancestors
+        else:
+            return Category.objects.none()
+    
+    def get_ancestors_list(self):
         if self.parent is not None:
             ancestors = self.parent.get_ancestors()
             ancestors.append(self.parent)

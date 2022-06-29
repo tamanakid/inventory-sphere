@@ -19,7 +19,7 @@ class CategoryBaseSerializer(BaseAPIModelSerializer):
             attr_dict = OrderedDict([
                 ('id', attribute.id),
                 ('name', attribute.name),
-                ('is_attribute_required', attribute.category_set.through.objects.get(attribute=attribute, category=category).is_attribute_required),
+                ('is_attribute_required', attribute.categories.through.objects.get(attribute=attribute, category=category).is_attribute_required),
                 # attribute.categoryattribute_set.get(category=category).is_attribute_required
             ])
             representation.append(attr_dict)

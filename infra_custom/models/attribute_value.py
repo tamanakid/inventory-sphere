@@ -24,6 +24,9 @@ class AttributeValue(models.Model):
     @cached_property
     def client(self):
         return self.attribute.client
+
+    def __str__(self):
+        return f'{self.name} ({self.attribute.name})'
     
 
     def save(self, *args, **kwargs):
