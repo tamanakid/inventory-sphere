@@ -1,5 +1,6 @@
 from django.http import Http404
 from django.core import exceptions as django_exceptions # import ValidationError as DjangoValidationError
+from django.db import IntegrityError
 
 from rest_framework import status
 from rest_framework import exceptions as drf_exceptions #, ValidationError as DRFValidationError, ErrorDetail
@@ -54,6 +55,17 @@ def convert_to_drf_exception(exception):
         
         exception = drf_exceptions.ValidationError(detail=response_errors)
     
+    elif isinstance(exception, IntegrityError):
+        message = exception.args[0]
+        response_errors = [{
+            'message': message or "",
+            'code': "integrity_error",
+            'show_message': False,
+            'field': None,
+        }]
+        exception = drf_exceptions.APIException(detail=response_errors)
+        exception.status_code = status.HTTP_400_BAD_REQUEST
+
     elif isinstance(exception, drf_exceptions.AuthenticationFailed):
         response_errors = [{
             'message': "",

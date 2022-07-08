@@ -45,12 +45,12 @@ class Product(models.Model):
     
     @property
     def attributes_qs(self):
-        return self.get_attributes_qs()
+        return self.get_all_attributes_qs()
 
     def get_full_path(self):
         return f'{self.category.get_full_path()} > {self.name}'
     
-    def get_attributes_qs(self):
+    def get_all_attributes_qs(self):
         categories = self.category.get_category_path_qs()
         attributes = Attribute.objects.filter(Q(categories__in=list(categories)) | Q(products=self))
         return attributes

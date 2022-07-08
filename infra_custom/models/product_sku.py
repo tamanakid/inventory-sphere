@@ -94,6 +94,7 @@ class ProductSku(models.Model):
         #         raise ValidationError(f'Another SKU for the same Product has the exact same attribute values.', None, { 'field': 'attribute_values' })
         
         super(ProductSku, self).save(*args, **kwargs)
+        print(self.pk)
 
 # @receiver(pre_save, sender=ProductSku)
 # def pre_save_callback(sender, instance, *args, **kwargs):

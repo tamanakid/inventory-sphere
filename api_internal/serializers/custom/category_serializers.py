@@ -2,7 +2,7 @@ from wsgiref import validate
 from collections import OrderedDict
 from rest_framework import serializers
 
-from infra_custom.models import Category, Attribute, CategoryAttribute
+from infra_custom.models import Category, Attribute
 from api_internal.serializers import RecursiveField, BaseAPIModelSerializer, APIPrimaryKeyRelatedField
 from api_internal.serializers.custom.attribute_serializers import AttributeSerializer
 
@@ -81,3 +81,14 @@ class CategoryTreeSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Category
 		fields = ('id', 'name', 'children')
+
+
+class CategoryForeignSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['full_path_name'] = instance.get_full_path()
+        return representation
+
+    class Meta:
+        model = Category
+        fields = ('id', 'name')
