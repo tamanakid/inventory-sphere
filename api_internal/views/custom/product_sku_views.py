@@ -6,29 +6,29 @@ from django_filters import rest_framework as filters
 
 from api_internal.views import BaseView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
-from api_internal.serializers import ProductSerializer, ProductDetailSerializer, ProductCreateSerializer
+from api_internal.serializers import ProductSkuSerializer, ProductSkuDetailSerializer, ProductSkuCreateSerializer
 
-from infra_custom.models import Product
+from infra_custom.models import ProductSku, Product
 
 
-class ProductFilter(filters.FilterSet):
-	name = django_filters.CharFilter(field_name='name', lookup_expr='icontains')
-	brand = django_filters.CharFilter(field_name='brand', lookup_expr='icontains')
-	category = django_filters.NumberFilter(field_name='category__id', lookup_expr='exact')
+class ProductSkuFilter(filters.FilterSet):
+	description = django_filters.CharFilter(field_name='description', lookup_expr='icontains')
+	product = django_filters.NumberFilter(field_name='product__id', lookup_expr='exact')
+	is_valid = django_filters.BooleanFilter(field_name='is_valid')
 
 	class Meta:
-		model = Product
-		fields = ['name', 'brand', 'category']
+		model = ProductSku
+		fields = ['description', 'product', 'is_valid']
 
 
-class ProductsBaseView(BaseView):
+class ProductSkusBaseView(BaseView):
 	permission_classes = (BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission)
 
 	def get_queryset(self, *args, **kwargs):
-		query = Product.objects.all()
+		query = ProductSku.objects.all()
 
 		if not self.request.user.is_superuser:
-			query = query.filter(client=self.client)
+			query = query.filter(product__client=self.client)
 		
 		return query
 
@@ -37,16 +37,16 @@ class ProductsBaseView(BaseView):
 # This will encompass attributes related to the product and ALL it's ancestor categories
 # This is likely better in its own endpoint
 
-class ProductsListView(ProductsBaseView):
+class ProductSkusListView(ProductSkusBaseView):
 	filter_backends = (filters.DjangoFilterBackend,)
-	filterset_class = ProductFilter
+	filterset_class = ProductSkuFilter
 
 	def get_serializer_class(self):
-		return ProductSerializer if self.request.method == 'GET' else ProductCreateSerializer
+		return ProductSkuSerializer if self.request.method == 'GET' else ProductSkuCreateSerializer
 
 	def get(self, request):
-		products = self.paginator.paginate_queryset(self.filter_queryset(self.get_queryset()), request)
-		serializer = self.get_serializer(products, many=True)
+		product_skus = self.paginator.paginate_queryset(self.filter_queryset(self.get_queryset()), request)
+		serializer = self.get_serializer(product_skus, many=True)
 		return self.paginator.get_paginated_response(serializer.data)
 		# return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -58,32 +58,32 @@ class ProductsListView(ProductsBaseView):
 
 
 
-class ProductsView(ProductsBaseView):
+class ProductSkusView(ProductSkusBaseView):
 	lookup_url_kwarg = 'id'
 
 	def get_serializer_class(self):
-		return ProductDetailSerializer if self.request.method == 'GET' else ProductCreateSerializer
+		return ProductSkuDetailSerializer if self.request.method == 'GET' else ProductSkuCreateSerializer
 
 	def get(self, request, id):
-		product = self.get_object()
-		serializer = self.get_serializer(product)
+		product_sku = self.get_object()
+		serializer = self.get_serializer(product_sku)
 		return Response(serializer.data, status=status.HTTP_200_OK)
 	
 	def put(self, request, id):
-		product = self.get_object()
-		serializer = self.get_serializer(product, data=request.data)
+		product_sku = self.get_object()
+		serializer = self.get_serializer(product_sku, data=request.data)
 		serializer.is_valid(raise_exception=True)
 		serializer.save()
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ProductsDeleteView(ProductsBaseView):
+class ProductSkusDeleteView(ProductSkusBaseView):
 	def get_serializer_class(self):
-		return ProductSerializer
+		return ProductSkuSerializer
 	
 	def post(self, request):
 		ids_to_delete = request.data.get('ids', None)
-		products = self.get_queryset().filter(id__in=ids_to_delete)
-		for product in products:
+		product_skus = self.get_queryset().filter(id__in=ids_to_delete)
+		for product in product_skus:
 			product.delete()
 		return Response(status=status.HTTP_200_OK)

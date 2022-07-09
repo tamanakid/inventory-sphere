@@ -4,3 +4,4 @@ from .category_views import *
 from .location_level_views import *
 from .location_views import *
 from .product_views import *
+from .product_sku_views import *

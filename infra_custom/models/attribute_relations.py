@@ -40,6 +40,7 @@ class ProductAttribute(models.Model):
             - that the ancestor's related attribute has is_attribute_required=false AND
             - that the current related attribute is being set to is_attribute_required=true
         '''
+        # NOTE: This is only called by the admin code. The API has its own implementation to verify this
         for attribute_rel in self.product.get_attribute_relations_list(exclude_own_attributes=True):
             print(f'{attribute_rel.attribute} - {attribute_rel.is_attribute_required}')
             if (attribute_rel.attribute == self.attribute):

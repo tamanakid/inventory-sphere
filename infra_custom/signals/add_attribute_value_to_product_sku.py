@@ -7,6 +7,9 @@ from ..models.product_sku import ProductSku, Attribute, AttributeValue
 
 @receiver(m2m_changed, sender=ProductSku.attribute_values.through, weak=False, dispatch_uid="product_sku__add_attribute_value")
 def add_attribute_value_to_product_sku(sender, **kwargs):
+    if 1 == 1:
+        return
+    
     # Do something
     print(f'sender: ', sender)
     print(kwargs)

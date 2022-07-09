@@ -21,13 +21,14 @@ class ProductSerializer(BaseAPIModelSerializer):
 
 class ProductDetailSerializer(BaseAPIModelSerializer):
 	id = serializers.IntegerField(required=False)
+	category = CategoryForeignSerializer()
 
 	def to_representation(self, instance):
 		representation = super().to_representation(instance)
-		representation['attributes'] = self._get_category_attributes_to_representation(instance)
+		representation['attributes'] = self._get_product_attributes_to_representation(instance)
 		return representation
 
-	def _get_category_attributes_to_representation(self, product):
+	def _get_product_attributes_to_representation(self, product):
 		representation = []
 		for category in product.category.get_category_path_qs():
 			for attribute in category.attributes.all():

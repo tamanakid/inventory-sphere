@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models.signals import pre_save, m2m_changed
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from django.utils.functional import cached_property
 
 from .category import Category
 from .attribute import Attribute
@@ -30,6 +31,10 @@ class ProductSku(models.Model):
     description = models.CharField(max_length=256, blank=False, null=False)
     attribute_values = models.ManyToManyField(AttributeValue, related_name='skus', related_query_name='sku')
     is_valid = models.BooleanField(default=False)
+
+    @cached_property
+    def client(self):
+        return self.product.client
 
     def __str__(self):
         return self.description
