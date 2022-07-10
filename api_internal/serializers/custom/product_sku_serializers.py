@@ -11,6 +11,7 @@ from api_internal.serializers.custom.product_serializers import ProductSerialize
 
 class ProductSkuSerializer(serializers.ModelSerializer):
 	id = serializers.IntegerField(required=False)
+	is_valid = serializers.BooleanField(read_only=True)
 	product = ProductSerializer()
 
 	class Meta:
@@ -21,6 +22,7 @@ class ProductSkuSerializer(serializers.ModelSerializer):
 
 class ProductSkuDetailSerializer(serializers.ModelSerializer):
 	id = serializers.IntegerField(required=False)
+	is_valid = serializers.BooleanField(read_only=True)
 	product = ProductSerializer()
 
 	def to_representation(self, instance):
@@ -72,7 +74,8 @@ class ProductSkuDetailSerializer(serializers.ModelSerializer):
 
 class ProductSkuCreateSerializer(serializers.ModelSerializer):
 	id = serializers.IntegerField(required=False)
-	attribute_value_ids = APIPrimaryKeyRelatedField(queryset=AttributeValue.objects.all(), write_only=True, many=True)
+	is_valid = serializers.BooleanField(read_only=True)
+	attribute_value_ids = APIPrimaryKeyRelatedField(queryset=AttributeValue.objects.all(), client_field="attribute__client", write_only=True, many=True)
 
 	class Meta:
 		model = ProductSku
@@ -90,84 +93,79 @@ class ProductSkuCreateSerializer(serializers.ModelSerializer):
 			message = error.args[0]
 			if message.__contains__("unique_name_for_brand"):
 				raise ValidationError(f'Another Product with the same name exists for this Brand', 'duplicate_fields', { 'field': 'name' })
-
 	
-	def update(self, instance, validated_data):
-		super().update(instance, validated_data)
-
-		# Maps for instance's current attributes and request's new attributes.
-		current_attrs = { attr.id: attr for attr in instance.get_all_attributes_qs() }
-		new_attrs = { attr.id: attr for attr in validated_data.pop('attribute_ids') }
-
-		# # Perform creations and updates.
-		for new_attr_id, new_attr in new_attrs.items():
-			attr = current_attrs.get(new_attr_id, None)
-			if attr is None:
-				instance.attributes.add(new_attr)
-
-		# # Perform deletions.
-		for attr_id, attr in current_attrs.items():
-			if attr_id not in new_attrs:
-				instance.attributes.remove(attr)
-		
-		return instance
-
-	def create(self, validated_data):
-		attribute_values = validated_data.pop('attribute_value_ids')
-		attribute_value_ids = list(map(lambda av : av.id, attribute_values))
-		product_sku = ProductSku.objects.create(**validated_data)
+	def _check_sku_validity(self, instance, attribute_values):
 		is_valid = True
 
-		'''1. All Related Attributes with IsRequired = True MUST Have a Value'''
-		# sav.attributevalue_id, self.attribute_values.through.objects.all()
-		sku_attributes_for_assigned_values = Attribute.objects.filter(attribute_value__id__in=list(map(lambda sav : sav.id, self.attribute_values.all())))
-		attribute_ids_for_assigned_values = list(map(lambda attr:attr.id, sku_attributes_for_assigned_values))
+		attribute_value_ids = list(map(lambda attr_val : attr_val.id, attribute_values))
 
-		product_related_attributes = self.product.get_attribute_relations_list()
-		product_related_attribute_ids = list(map(lambda ar : ar.attribute_id, product_related_attributes))
+		'''1. All Related Attributes with IsRequired = True MUST Have a Value'''
+		attributes = Attribute.objects.filter(attribute_value__id__in=attribute_value_ids)
+		attribute_ids = list(map(lambda attr:attr.id, attributes))
+
+		product_category_attributes = instance.product.get_attribute_relations_list()
+		product_category_attribute_ids = list(map(lambda ar : ar.attribute_id, product_category_attributes))
 
 		missing_values_for_attrs = []
 
-		for attribute_rel in product_related_attributes:
-			if attribute_rel.is_attribute_required and attribute_rel.attribute_id not in attribute_ids_for_assigned_values:
-				# attr_name = AttributeValue.objects.get(id=attribute_rel.attribute_id).name
-				attr_name = sku_attributes_for_assigned_values.get(id=attribute_rel.attribute_id).name
+		for attribute_rel in product_category_attributes:
+			if attribute_rel.is_attribute_required and attribute_rel.attribute_id not in attribute_ids:
+				# attr_name = attribute_values.get(id=attribute_rel.attribute_id).name
+				attr_name = Attribute.objects.get(id=attribute_rel.attribute_id).name
 				missing_values_for_attrs.append(attr_name)
 		if len(missing_values_for_attrs) > 0:
-			is_valid = False
 			# raise ValidationError(f'A value must be set for the following attributes: {", ".join(missing_values_for_attrs)}', None, { 'field': 'attribute_values' })
+			is_valid = False
 		
-		'''2. All self.attribute_values are values for a Related Attribute. (This needs not raise an exception, but merely filter them)'''
-		missing_attributes_in_product = [attr_id for attr_id in attribute_ids_for_assigned_values if attr_id not in product_related_attribute_ids]
+		'''2. All product_sku.attribute_values are values for a Related Attribute. (This needs not raise an exception, but merely filter them)'''
+		missing_attributes_in_product = [attr_id for attr_id in attribute_ids if attr_id not in product_category_attribute_ids]
 		if len(missing_attributes_in_product) > 0:
 			is_valid = False
 			# raise ValidationError(f'There are non-assignable attribute values', None, { 'field': 'attribute_values' })
 		
-		valid_attribute_values = attribute_values.distinct('attribute_id')
+		valid_attribute_values = AttributeValue.objects.filter(id__in=attribute_value_ids).distinct('attribute_id')
 		if len(valid_attribute_values) != len(attribute_values):
 			is_valid = False
 			# raise ValidationError(f'There are duplicate values for a single attribute.', None, { 'field': 'attribute_values' })
 		
 		'''
-        TODO: Check for duplicates of possible RelatedAttributes combinations 
-        So something like a foreach val in attribute_values: ProductSku.object.filter(attribute_values__icontains??=val)
+		TODO: Check for duplicates of possible RelatedAttributes combinations 
+		So something like a foreach val in attribute_values: ProductSku.object.filter(attribute_values__icontains??=val)
 		'''
-		existing_product_skus = ProductSku.objects.filter(product=product_sku.product).exclude(id=product_sku.id)
+		existing_product_skus = ProductSku.objects.filter(product=instance.product).exclude(id=instance.id)
 		existing_skus_attribute_values_ids = list(map(lambda sku : sku.get_attribute_values_ids(), existing_product_skus))
-
 
 		for sku_attr_value_ids in existing_skus_attribute_values_ids:
 			if len(set(sku_attr_value_ids).symmetric_difference(set(attribute_value_ids))) == 0:
 				is_valid = False
 				# raise ValidationError(f'Another SKU for the same Product has the exact same attribute values.', None, { 'field': 'attribute_values' })
 		
-		print('is_valid', is_valid)
-		product_sku.is_valid = is_valid
-		product_sku.save()
+		instance.attribute_values.set(attribute_value_ids)
 
-		# product_categories_attributes = product_sku.get_all_attributes_qs()
-		# for attribute in attribute_values:
-		# 	# Avoid adding duplicate attributes (i.e. an attribute existing in an ancestor category)
-		# 	if attribute not in product_categories_attributes:
-		# 		product_sku.attributes.add(attribute)
-		# return product_sku
+		print('is_valid', is_valid)
+		instance.is_valid = is_valid
+		instance.save()
+
+		return instance
+	
+
+	def update(self, instance, validated_data):
+		try:
+			attribute_values = validated_data.pop('attribute_value_ids')
+			super().update(instance, validated_data)
+			return self._check_sku_validity(instance, attribute_values)
+		except:
+			if instance.pk is not None:
+				instance.delete()
+			raise
+	
+	def create(self, validated_data):
+		try:
+			attribute_values = validated_data.pop('attribute_value_ids')
+			product_sku = ProductSku.objects.create(**validated_data)
+			return self._check_sku_validity(product_sku, attribute_values)
+		except:
+			if product_sku is not None and product_sku.pk is not None:
+				product_sku.delete()
+			raise
+	
