@@ -91,8 +91,9 @@ class ProductSkuCreateSerializer(serializers.ModelSerializer):
 			super().save()
 		except IntegrityError as error:
 			message = error.args[0]
-			if message.__contains__("unique_name_for_brand"):
-				raise ValidationError(f'Another Product with the same name exists for this Brand', 'duplicate_fields', { 'field': 'name' })
+			if message.__contains__("unique_description_for_product"):
+				raise ValidationError(f'Another Product Sku with the same Description exists', 'duplicate_fields', { 'field': 'name' })
+			raise
 	
 	def _check_sku_validity(self, instance, attribute_values):
 		is_valid = True
@@ -160,6 +161,7 @@ class ProductSkuCreateSerializer(serializers.ModelSerializer):
 			raise
 	
 	def create(self, validated_data):
+		product_sku = None
 		try:
 			attribute_values = validated_data.pop('attribute_value_ids')
 			product_sku = ProductSku.objects.create(**validated_data)
