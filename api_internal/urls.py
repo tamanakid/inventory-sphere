@@ -44,6 +44,13 @@ urlpatterns = [
     path('locations/<int:id>', views.LocationsView.as_view(), name='internal__locations'),
     path('locations/delete/', views.LocationsDeleteView.as_view(), name='internal__locations_delete'),
 
+    path('products/', views.ProductsListView.as_view(), name='internal__products_list'),
+    path('products/<int:id>', views.ProductsView.as_view(), name='internal__products'),
+    path('products/delete/', views.ProductsDeleteView.as_view(), name='internal__products_delete'),
+
+    path('product_skus/', views.ProductSkusListView.as_view(), name='internal__product_skus_list'),
+    path('product_skus/<int:id>', views.ProductSkusView.as_view(), name='internal__product_skus'),
+    path('product_skus/delete/', views.ProductSkusDeleteView.as_view(), name='internal__product_skus_delete'),
 
     #views.PatientViewSet.reverse_action(views.PatientViewSet.get_residence_users.url_name, args=['1'])
 ]
