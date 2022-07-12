@@ -1,0 +1,1 @@
+from .stock_item_admin import StockItemAdmin

@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django_filters',
     'api_internal.apps.ApiInternalConfig',
     'infra_auth.apps.InfraAuthConfig',
-    'infra_custom.apps.InfraCustomConfig'
+    'infra_custom.apps.InfraCustomConfig',
+    'infra_stock.apps.InfraStockConfig'
 ]
 
 MIDDLEWARE = [
@@ -101,6 +102,7 @@ DATABASES = {
 MIGRATION_MODULES = {
     'infra_auth': 'infra_auth.migrations',
     'infra_custom': 'infra_custom.migrations',
+    'infra_stock': 'infra_stock.migrations',
 }
 
 
