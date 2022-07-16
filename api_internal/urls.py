@@ -52,5 +52,10 @@ urlpatterns = [
     path('product_skus/<int:id>', views.ProductSkusView.as_view(), name='internal__product_skus'),
     path('product_skus/delete/', views.ProductSkusDeleteView.as_view(), name='internal__product_skus_delete'),
 
+    # Stock
+    path('stock_items/', views.StockItemsListView.as_view(), name='internal__stock_items_list'),
+    path('stock_items/bulk/', views.StockItemsBulkView.as_view(), name='internal__stock_items_bulk'),
+    path('stock_items/delete/', views.StockItemsDeleteView.as_view(), name='internal__stock_items_delete'),
+
     #views.PatientViewSet.reverse_action(views.PatientViewSet.get_residence_users.url_name, args=['1'])
 ]

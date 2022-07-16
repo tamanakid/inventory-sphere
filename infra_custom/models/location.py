@@ -45,6 +45,25 @@ class Location(models.Model):
 
     def get_full_path(self):
         return f'{self.parent.get_full_path()} > {self.name}' if self.parent is not None else self.name
+    
+    def get_parents_qs(self):
+        if self.parent is None:
+            return Location.objects.none()
+        else:
+            parents_qs = self.parent.get_parents_qs()
+            parents_qs |= Location.objects.filter(id=self.parent.id)
+            return parents_qs
+    
+    def get_all_descendants_qs(self, level_locations_qs=None):
+        if level_locations_qs is None:
+            level_locations_qs = Location.objects.filter(id=self.id)
+        direct_descendants_qs = Location.objects.filter(parent__in=level_locations_qs)
+        # This would happen when reaching the last level of Location "children"
+        if direct_descendants_qs.count() == 0:
+            return level_locations_qs
+        # This returns all children found below, plus the ones found in this level
+        return self.get_all_descendants_qs(direct_descendants_qs) | level_locations_qs
+
 
     def __str__(self):
         return self.get_full_path()
