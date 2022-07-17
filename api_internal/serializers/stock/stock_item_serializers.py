@@ -47,7 +47,7 @@ class StockItemAddSerializer(serializers.ModelSerializer):
 		fields = ('id', 'sku', 'location')
 
 
-class StockItemAddBulkSerializer(serializers.ModelSerializer):
+class StockItemBulkAddSerializer(serializers.ModelSerializer):
 	id = serializers.IntegerField(required=False)
 	amount = serializers.IntegerField(required=True)
 
@@ -67,37 +67,59 @@ class StockItemAddBulkSerializer(serializers.ModelSerializer):
 		}
 
 
-class StockItemUpdateBulkSerializer(serializers.ModelSerializer):
-	id = serializers.IntegerField(required=False)
-	sku = ProductSkuSerializer()
+class StockItemBulkUpdateSerializer(serializers.ModelSerializer):
+	sku = APIPrimaryKeyRelatedField(queryset=ProductSku.objects.all(), client_field="product__client", write_only=True, many=False)
 	location_from = APIPrimaryKeyRelatedField(queryset=Location.objects.all(), client_field="level__client", write_only=True, many=False)
 	location_to = APIPrimaryKeyRelatedField(queryset=Location.objects.all(), client_field="level__client", write_only=True, many=False)
 	amount = serializers.IntegerField(required=True)
 
 	class Meta:
 		model = StockItem
-		fields = ('id', 'sku', 'location_from', 'location_to', 'amount')
+		fields = ('sku', 'location_from', 'location_to', 'amount')
 
-	def update(self, instance, validated_data):
+	# This is a relocation ("update") process
+	def create(self, validated_data):
 		amount = validated_data.pop('amount')
+		sku = validated_data.pop('sku')
+		location_from = validated_data.pop('location_from')
+		location_to = validated_data.pop('location_to')
 
-		sku = validated_data.get('sku')
-		location_from = validated_data.get('location_from')
-		amount_updateable = StockItem.objects.filter(sku=sku, location=location_from)
-		if (amount_updateable < amount):
-			raise ValidationError(f'This Location only contains {amount_updateable} updateable units for the specified SKU', 'no_stock', { 'field': 'amount' })
+		updateable_instances = StockItem.objects.filter(sku=sku, location=location_from)
+		updateable_amount = updateable_instances.count()
 
-		validated_data['location'] = validated_data.pop('location_to')
-		super().update(instance, validated_data)
+		if (updateable_amount < amount):
+			raise ValidationError(f'This Location only contains {updateable_amount} updateable units for the specified SKU', 'no_stock', { 'field': 'amount' })
+		
+		instances_to_update = StockItem.objects.filter(id__in=list(updateable_instances.values_list('pk', flat=True)[:amount]))
+		instances_to_update.update(location=location_to)
+
+		return list(map(lambda instance : {
+			'sku': instance.sku.description,
+			'location': instance.location.full_path,
+			'amount': amount
+		}, instances_to_update))
 
 
-class StockItemDeleteSerializer(serializers.ModelSerializer):
-	id = serializers.IntegerField(required=False)
-	sku = ProductSkuSerializer()
-	location_from = APIPrimaryKeyRelatedField(queryset=Location.objects.all(), client_field="level__client", write_only=True, many=False)
-	location_to = APIPrimaryKeyRelatedField(queryset=Location.objects.all(), client_field="level__client", write_only=True, many=False)
+class StockItemRemoveSerializer(serializers.ModelSerializer):
+	sku = APIPrimaryKeyRelatedField(queryset=ProductSku.objects.all(), client_field="product__client", write_only=True, many=False)
+	location = APIPrimaryKeyRelatedField(queryset=Location.objects.all(), client_field="level__client", write_only=True, many=False)
 	amount = serializers.IntegerField(required=True)
 
 	class Meta:
 		model = StockItem
-		fields = ('id', 'sku', 'location', 'amount')
+		fields = ('sku', 'location', 'amount')
+	
+	# This is a Remove ("delete") process
+	def create(self, validated_data):
+		amount = validated_data.pop('amount')
+		sku = validated_data.pop('sku')
+		location = validated_data.pop('location')
+
+		removable_instances = StockItem.objects.filter(sku=sku, location=location)
+		removable_amount = removable_instances.count()
+
+		if (removable_amount < amount):
+			raise ValidationError(f'This Location only contains {removable_amount} removable units for the specified SKU', 'no_stock', { 'field': 'amount' })
+		
+		instances_to_remove = StockItem.objects.filter(id__in=list(removable_instances.values_list('pk', flat=True)[:amount]))
+		instances_to_remove.delete()

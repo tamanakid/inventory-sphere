@@ -15,7 +15,7 @@ from django_filters import rest_framework as filters
 from api_internal.views import BaseView
 from api_internal.permissions import BaseAPIPermission, StorageRolesWriteElseReadOnlyPermission
 from api_internal.serializers.custom import LocationFlatSerializer, ProductSkuSerializer
-from api_internal.serializers.stock import StockItemSerializer, StockItemAddSerializer, StockItemAddBulkSerializer, StockItemUpdateBulkSerializer, StockItemAmountSerializer
+from api_internal.serializers.stock import StockItemSerializer, StockItemAddSerializer, StockItemBulkAddSerializer, StockItemBulkUpdateSerializer, StockItemAmountSerializer, StockItemRemoveSerializer
 
 from infra_stock.models.stock_item import StockItem
 from infra_custom.models.location import Location
@@ -25,7 +25,7 @@ from infra_custom.models.product_sku import ProductSku
 
 class StockItemFilter(filters.FilterSet):
 	sku = django_filters.NumberFilter(field_name='sku__id', lookup_expr='exact')
-	# location = django_filters.NumberFilter(field_name='location__id', lookup_expr='exact')
+	product = django_filters.NumberFilter(field_name='sku__product__id', lookup_expr='exact')
 	location = django_filters.NumberFilter(field_name='location__id', method='filter_location_tree')
 
 	def filter_location_tree(self, queryset, field_name, value):
@@ -72,16 +72,14 @@ class StockItemsListView(StockItemsBaseView):
 		return Response(serializer.data, status=status.HTTP_201_CREATED)
 	
 
-class StockItemsBulkView(StockItemsBaseView):
+class StockItemsBulkAddView(StockItemsBaseView):
 	lookup_url_kwarg = 'id'
 	filter_backends = (filters.DjangoFilterBackend,)
 	filterset_class = StockItemFilter
 
 	def get_serializer_class(self):
 		if self.request.method == 'POST':
-			return StockItemAddBulkSerializer
-		elif self.request.method == 'POST':
-			return StockItemUpdateBulkSerializer
+			return StockItemBulkAddSerializer
 		else:
 			return StockItemSerializer
 	
@@ -97,19 +95,24 @@ class StockItemsBulkView(StockItemsBaseView):
 		response_data = serializer.save()
 		return Response(response_data, status=status.HTTP_201_CREATED)
 
-	def put(self, request, id):
-		location = self.get_object()
-		serializer = self.get_serializer(location, data=request.data)
+
+class StockItemsBulkUpdateView(StockItemsBaseView):
+	def get_serializer_class(self):
+		return StockItemBulkUpdateSerializer
+	
+	def post(self, request):
+		serializer = self.get_serializer(data=request.data, many=True)
+		serializer.is_valid(raise_exception=True)
+		response_data = serializer.save()
+		return Response(response_data, status=status.HTTP_200_OK)
+
+
+class StockItemsRemoveView(StockItemsBaseView):
+	def get_serializer_class(self):
+		return StockItemRemoveSerializer
+	
+	def post(self, request):
+		serializer = self.get_serializer(data=request.data, many=True)
 		serializer.is_valid(raise_exception=True)
 		serializer.save()
-		return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class StockItemsDeleteView(StockItemsBaseView):
-	#  Deletion endpoint
-	def post(self, request):
-		ids_to_delete = request.data.get('ids', None)
-		locations = self.get_queryset().filter(id__in=ids_to_delete)
-		for location in locations:
-			location.delete()
 		return Response(status=status.HTTP_200_OK)

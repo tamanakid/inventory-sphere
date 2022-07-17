@@ -54,8 +54,9 @@ urlpatterns = [
 
     # Stock
     path('stock_items/', views.StockItemsListView.as_view(), name='internal__stock_items_list'),
-    path('stock_items/bulk/', views.StockItemsBulkView.as_view(), name='internal__stock_items_bulk'),
-    path('stock_items/delete/', views.StockItemsDeleteView.as_view(), name='internal__stock_items_delete'),
+    path('stock_items/bulk_add/', views.StockItemsBulkAddView.as_view(), name='internal__stock_items_bulk_add'),
+    path('stock_items/bulk_update/', views.StockItemsBulkUpdateView.as_view(), name='internal__stock_items_bulk_update'),
+    path('stock_items/remove/', views.StockItemsRemoveView.as_view(), name='internal__stock_items_remove'),
 
     #views.PatientViewSet.reverse_action(views.PatientViewSet.get_residence_users.url_name, args=['1'])
 ]
