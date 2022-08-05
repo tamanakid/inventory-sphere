@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 from infra_auth.managers import UserManager
+from infra_custom.models.location import Location
 
 
 class User(AbstractUser):
@@ -31,6 +32,7 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.STORAGE_EMPLOYEE,
     )
+    locations = models.ManyToManyField(Location, through='infra_auth.UserLocation', related_name='users', related_query_name='user')
     
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
@@ -41,6 +43,9 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+    
+    def is_storage_user(self):
+        return self.role == User.Role.STORAGE_MANAGER or self.role == User.Role.STORAGE_EMPLOYEE
 
     def save(self, *args, **kwargs):
         if not self.is_superuser and not self.is_staff and (self.client is None):
