@@ -61,18 +61,56 @@ class UserSerializer(BaseAPIModelSerializer):
 
 class UserCreateSerializer(BaseAPIModelSerializer):
     id = serializers.IntegerField(required=False)
-    location_ids = APIPrimaryKeyRelatedField(queryset=Location.objects.all(), write_only=True, many=True)
+    location_ids = APIPrimaryKeyRelatedField(queryset=Location.objects.all(), write_only=True, many=True, client_field='level__client')
 
     class Meta:
         model = User
         fields = ('id', 'email', 'first_name', 'last_name', 'role', 'location_ids')
     
+    def _check_locations_validity(self, locations, posting_user):
+        # Is already enforced by permission classes
+        if not posting_user.is_storage_user:
+            raise ValidationError(f'Only Managers can add new Users')
+            
+        posting_user_locations = posting_user.locations.all()
+        for location in locations:
+            if not location.level.is_root_storage_level:
+                raise ValidationError(f'Locations can only be added to a Storage Employee if these are RSLs', 'non_rsl_location', { 'field': 'location_ids' })
+            if location not in posting_user_locations:
+                raise ValidationError(f'Locations can only be added to a Storage Employee by managers of said locations', 'add_user_to_location_auth', { 'field': 'location_ids' })
+        return
+        
+    
     def create(self, validated_data):
         locations = validated_data.pop('location_ids')
+        posting_user = User.objects.get(id=self.context['request'].user.id)
+        self._check_locations_validity(locations, posting_user)
+
         user = User.objects.create(**validated_data)
 
-        product_categories_attributes = user.get_all_attributes_qs()
         for location in locations:
-            if location not in product_categories_attributes:
-                user.attributes.add(location)
+            user.locations.add(location)
         return user
+
+
+    def update(self, user_instance, validated_data):
+        current_locations = { loc.id: loc for loc in user_instance.locations.all() }
+        new_locations = { loc.id: loc for loc in validated_data.pop('location_ids') }
+        
+        posting_user = User.objects.get(id=self.context['request'].user.id)
+        self._check_locations_validity(list(new_locations.values()), posting_user)
+
+        super().update(user_instance, validated_data)
+
+        # # Perform creations and updates.
+        for new_loc_id, new_loc in new_locations.items():
+            loc = current_locations.get(new_loc_id, None)
+            if loc is None:
+                user_instance.locations.add(new_loc)
+
+        # # Perform deletions.
+        for loc_id, loc in current_locations.items():
+            if loc_id not in new_locations:
+                user_instance.locations.remove(loc)
+
+        return user_instance

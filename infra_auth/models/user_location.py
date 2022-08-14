@@ -17,6 +17,9 @@ class UserLocation(models.Model):
         if not self.user.is_storage_user:
             return
         
+        if not self.location.level.is_root_storage_level:
+            return
+
         '''
         user_locations = self.user.locations.through.objects.filter(user=self.user)
         '''
