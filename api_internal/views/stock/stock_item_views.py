@@ -18,6 +18,7 @@ from api_internal.serializers.custom import LocationFlatSerializer, ProductSkuSe
 from api_internal.serializers.stock import StockItemSerializer, StockItemAddSerializer, StockItemBulkAddSerializer, StockItemBulkUpdateSerializer, StockItemAmountSerializer, StockItemRemoveSerializer
 
 from infra_stock.models.stock_item import StockItem
+from infra_auth.models.user import User
 from infra_custom.models.location import Location
 from infra_custom.models.product_sku import ProductSku
 
@@ -56,13 +57,18 @@ class StockItemsListView(StockItemsBaseView):
 	
 	def get_serializer_class(self):
 		return StockItemAmountSerializer if self.request.method == 'GET' else StockItemAddSerializer
+	
+	def get_serializer_context(self):
+		context = super().get_serializer_context()
+		context['get_full_path_name'] = True
+		return context
 
 	def get(self, request):
 		items_qs = self.filter_queryset(self.get_queryset())
 		item_amount_dicts_qs = items_qs.values('sku', 'location').annotate(amount=Count('id', distinct=True))
 		item_amount_list = self.paginator.paginate_queryset((item_amount_dicts_qs), request)
 
-		serializer = self.get_serializer(item_amount_list, many=True, context={'get_full_path_name': True})
+		serializer = self.get_serializer(item_amount_list, many=True)
 		return self.paginator.get_paginated_response(serializer.data)
 	
 	def post(self, request):
