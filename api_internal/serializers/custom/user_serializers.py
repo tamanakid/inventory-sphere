@@ -71,6 +71,9 @@ class UserCreateSerializer(BaseAPIModelSerializer):
         # Is already enforced by permission classes
         if not posting_user.is_storage_user:
             raise ValidationError(f'Only Managers can add new Users')
+        
+        if posting_user.role == User.Role.INVENTORY_MANAGER:
+            return
             
         posting_user_locations = posting_user.locations.all()
         for location in locations:
