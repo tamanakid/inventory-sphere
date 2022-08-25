@@ -52,6 +52,10 @@ urlpatterns = [
     path('product_skus/<int:id>', views.ProductSkusView.as_view(), name='internal__product_skus'),
     path('product_skus/delete/', views.ProductSkusDeleteView.as_view(), name='internal__product_skus_delete'),
 
+    path('users/', views.UsersListView.as_view(), name='internal__users_list'),
+    path('users/<int:id>', views.UsersView.as_view(), name='internal__users'),
+    path('users/delete/', views.UsersDeleteView.as_view(), name='internal__users_delete'),
+
     # Stock
     path('stock_items/', views.StockItemsListView.as_view(), name='internal__stock_items_list'),
     path('stock_items/bulk_add/', views.StockItemsBulkAddView.as_view(), name='internal__stock_items_bulk_add'),
