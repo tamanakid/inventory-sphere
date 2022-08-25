@@ -54,6 +54,11 @@ class Location(models.Model):
             parents_qs |= Location.objects.filter(id=self.parent.id)
             return parents_qs
     
+    def get_rsl_parent(self):
+        all_parents = self.get_parents_qs()
+        rsl_parent = all_parents.filter(level__is_root_storage_level=True)
+        return rsl_parent[0] if len(rsl_parent) == 1 else None
+    
     def get_all_descendants_qs(self, level_locations_qs=None):
         if level_locations_qs is None:
             level_locations_qs = Location.objects.filter(id=self.id)

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 
+from infra_auth.models.user import User
 from infra_stock.models.stock_item import StockItem
 from infra_custom.models.location import Location
 from infra_custom.models.product_sku import ProductSku
@@ -28,6 +29,16 @@ class StockItemAmountSerializer(BaseAPIModelSerializer):
 	def to_representation(self, instance):
 		instance['sku'] = ProductSku.objects.get(id=instance['sku'])
 		instance['location'] = Location.objects.get(id=instance['location'])
+
+		user = User.objects.get(id=self.context['request'].user.id)
+		if user.role != User.Role.INVENTORY_MANAGER:
+			user_locations = user.locations.all()
+			# If user doesn't have access to the item's rsl, don't show the location within the rsl.
+			rsl_location = instance['location'].get_rsl_parent()
+			rsl_location_id = rsl_location.id if rsl_location is not None else None
+			if not user_locations.filter(id=rsl_location_id).exists():
+				instance['location'] = rsl_location
+
 		representation = super().to_representation(instance)
 		return representation
 
