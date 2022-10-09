@@ -13,7 +13,7 @@ import django_filters
 from django_filters import rest_framework as filters
 
 from api_internal.views import BaseView, BaseDeleteView
-from api_internal.permissions import BaseAPIPermission, ManagerRolesWriteElseReadOnlyPermission
+from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
 from api_internal.serializers import CategoryFlatSerializer, CategoryListSerializer, CategoryTreeSerializer, CategoryDetailsSerializer
 
 from infra_custom.models import Category, Attribute, CategoryAttribute
@@ -31,7 +31,7 @@ class CategoryFilter(filters.FilterSet):
 
 
 class CategoriesBaseView(BaseView):
-	permission_classes = (BaseAPIPermission, ManagerRolesWriteElseReadOnlyPermission)
+	permission_classes = (BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission)
 
 	def get_queryset(self, *args, **kwargs):
 		root_only = kwargs.get('root_only')

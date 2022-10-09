@@ -23,6 +23,10 @@ class BaseDeleteView(BaseView):
         ids_to_delete = request.data.get('ids', None)
         instances = self.get_queryset().filter(id__in=ids_to_delete)
 
+        if len(instances) == 0:
+            serializer = self.get_serializer([])
+            return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
+
         for instance in instances:
             instance.delete()
         
