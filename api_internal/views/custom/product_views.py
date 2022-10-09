@@ -4,7 +4,7 @@ from rest_framework.response import Response
 import django_filters
 from django_filters import rest_framework as filters
 
-from api_internal.views import BaseView
+from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
 from api_internal.serializers import ProductSerializer, ProductDetailSerializer, ProductCreateSerializer
 
@@ -77,13 +77,5 @@ class ProductsView(ProductsBaseView):
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ProductsDeleteView(ProductsBaseView):
-	def get_serializer_class(self):
-		return ProductSerializer
-	
-	def post(self, request):
-		ids_to_delete = request.data.get('ids', None)
-		products = self.get_queryset().filter(id__in=ids_to_delete)
-		for product in products:
-			product.delete()
-		return Response(status=status.HTTP_200_OK)
+class ProductsDeleteView(BaseDeleteView, ProductsBaseView):
+	pass

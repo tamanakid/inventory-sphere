@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import BasePermission
 
-from api_internal.views import BaseView
+from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
 from api_internal.serializers import AttributeValueGetSerializer, AttributeValueSaveSerializer
 
@@ -69,11 +69,5 @@ class AttributeValuesView(AttributeValuesBaseView):
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class AttributeValuesDeleteView(AttributeValuesBaseView):
-	def post(self, request):
-		ids_to_delete = request.data.get('ids', None)
-		attribute_values = self.get_queryset().filter(id__in=ids_to_delete)
-		for attribute_value in attribute_values:
-			attribute_value.delete()
-		# TODO NICO: if ids_to_delete.length == deleted items -> status = 200
-		return Response(status=status.HTTP_200_OK)
+class AttributeValuesDeleteView(BaseDeleteView, AttributeValuesBaseView):
+	pass
