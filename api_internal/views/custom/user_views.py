@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 import django_filters
 from django_filters import rest_framework as filters
 
-from api_internal.views import BaseView
+from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, ManagerRolesPermission
 from api_internal.serializers.custom import UserSerializer, UserCreateSerializer
 
@@ -100,13 +100,5 @@ class UsersView(UsersBaseView):
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UsersDeleteView(UsersBaseView):
-	def get_serializer_class(self):
-		return UserSerializer
-	
-	def post(self, request):
-		ids_to_delete = request.data.get('ids', None)
-		users = self.get_queryset().filter(id__in=ids_to_delete)
-		for user in users:
-			user.delete()
-		return Response(status=status.HTTP_200_OK)
+class UsersDeleteView(BaseDeleteView, UsersBaseView):
+	pass

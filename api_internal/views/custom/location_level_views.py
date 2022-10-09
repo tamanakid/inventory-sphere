@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import BasePermission
 
-from api_internal.views import BaseView
+from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
 from api_internal.serializers import LocationLevelFlatSerializer, LocationLevelChildrenSerializer, LocationLevelTreeSerializer
 
@@ -108,10 +108,5 @@ class LocationLevelView(LocationLevelsBaseView):
 	# 	return serializer
 
 
-class LocationLevelsDeleteView(LocationLevelsBaseView):
-	def post(self, request):
-		ids_to_delete = request.data.get('ids', None)
-		location_levels = self.get_queryset().filter(id__in=ids_to_delete)
-		for location_level in location_levels:
-			location_levels.delete()
-		return Response(status=status.HTTP_200_OK)
+class LocationLevelsDeleteView(BaseDeleteView, LocationLevelsBaseView):
+	pass

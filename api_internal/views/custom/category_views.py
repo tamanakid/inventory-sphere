@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 import django_filters
 from django_filters import rest_framework as filters
 
-from api_internal.views import BaseView
+from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, ManagerRolesWriteElseReadOnlyPermission
 from api_internal.serializers import CategoryFlatSerializer, CategoryListSerializer, CategoryTreeSerializer, CategoryDetailsSerializer
 
@@ -109,10 +109,5 @@ class CategoriesChildrenView(CategoriesBaseView):
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class CategoriesDeleteView(CategoriesBaseView):
-	def post(self, request):
-		ids_to_delete = request.data.get('ids', None)
-		categories = self.get_queryset().filter(id__in=ids_to_delete)
-		for category in categories:
-			category.delete()
-		return Response(status=status.HTTP_200_OK)
+class CategoriesDeleteView(BaseDeleteView, CategoriesBaseView):
+	pass

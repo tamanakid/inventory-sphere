@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 # TODO: Prolly better to use and handle the DRF ValidationError
 # from rest_framework import exceptions
 
-from api_internal.views import BaseView
+from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, ManagerRolesWriteElseReadOnlyPermission
 from api_internal.serializers import LocationFlatSerializer, LocationTreeSerializer, LocationChildrenSerializer, LocationStructureSerializer
 
@@ -141,10 +141,5 @@ class LocationsView(LocationsBaseView):
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class LocationsDeleteView(LocationsBaseView):
-	def post(self, request):
-		ids_to_delete = request.data.get('ids', None)
-		locations = self.get_queryset().filter(id__in=ids_to_delete)
-		for location in locations:
-			location.delete()
-		return Response(status=status.HTTP_200_OK)
+class LocationsDeleteView(BaseDeleteView, LocationsBaseView):
+	pass

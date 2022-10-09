@@ -4,7 +4,7 @@ from rest_framework.response import Response
 import django_filters
 from django_filters import rest_framework as filters
 
-from api_internal.views import BaseView
+from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
 from api_internal.serializers import AttributeSerializer, AttributeWithValuesListSerializer
 
@@ -75,13 +75,5 @@ class AttributesView(AttributesBaseView):
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class AttributesDeleteView(AttributesBaseView):
-	def get_serializer_class(self):
-		return AttributeSerializer
-	
-	def post(self, request):
-		ids_to_delete = request.data.get('ids', None)
-		attributes = self.get_queryset().filter(id__in=ids_to_delete)
-		for attribute in attributes:
-			attribute.delete()
-		return Response(status=status.HTTP_200_OK)
+class AttributesDeleteView(BaseDeleteView, AttributesBaseView):
+	pass
