@@ -56,6 +56,12 @@ class StockItemAddSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = StockItem
 		fields = ('id', 'sku', 'location')
+	
+	def to_representation(self, instance):
+		representation = super().to_representation(instance)
+		representation['sku'] = instance.sku.description
+		representation['location'] = instance.location.full_path
+		return representation
 
 
 class StockItemBulkAddSerializer(serializers.ModelSerializer):
