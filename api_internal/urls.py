@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from _app_config.custom_auth import (
+from inventorysphere.custom_auth import (
     CustomTokenObtainPairView,
     # CustomTokenRefreshView,
 )

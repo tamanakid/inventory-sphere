@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
     'django_filters',
@@ -60,25 +59,9 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware'
 ]
 
-ROOT_URLCONF = '_app_config.urls'
+ROOT_URLCONF = 'inventorysphere.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
-
-WSGI_APPLICATION = '_app_config.wsgi.application'
+WSGI_APPLICATION = 'inventorysphere.wsgi.application'
 
 
 # Database
@@ -142,12 +125,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.0/howto/static-files/
-
-STATIC_URL = 'static/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
@@ -157,9 +134,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # DRF Configuration
 
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': '_app_config.response_handlers.api_exception_handler',
+    'EXCEPTION_HANDLER': 'inventorysphere.response_handlers.api_exception_handler',
     'DEFAULT_RENDERER_CLASSES': (
-        '_app_config.response_handlers.APIRenderer',
+        'inventorysphere.response_handlers.APIRenderer',
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer'
     ),
@@ -177,11 +154,10 @@ REST_FRAMEWORK = {
 # JSON Web Tokens simplejwt Configuration
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=600), # minutes=15
-    'REFRESH_TOKEN_LIFETIME': timedelta(hours=8), # hours=2
-    'ROTATE_REFRESH_TOKENS': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=600), # minutes=30
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=8), # hours=10
     'AUTH_HEADER_TYPES': ('Bearer'),
-    'TOKEN_USER_CLASS': '_app_config.custom_auth.CustomTokenUser',
+    'TOKEN_USER_CLASS': 'inventorysphere.custom_auth.CustomTokenUser',
     'SIGNING_KEY': 'AUTHENTICATION PROJECT SECRET KEY',
     'VERIFYING_KEY': 'AUTHENTICATION PROJECT SECRET KEY',
 }

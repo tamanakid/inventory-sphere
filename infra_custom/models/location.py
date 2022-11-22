@@ -2,7 +2,7 @@ from django.utils.functional import cached_property
 from django.db import models
 from django.core.exceptions import ValidationError
 
-from utils.data_types import get_roman_numeric_from_integer, get_alphabet_index_from_integer
+from inventorysphere.data_types import get_roman_numeric_from_integer, get_alphabet_index_from_integer
 
 
 class Location(models.Model):
