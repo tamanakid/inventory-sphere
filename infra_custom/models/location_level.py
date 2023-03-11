@@ -40,7 +40,7 @@ class LocationLevel(models.Model):
         else:
             return []
 
-    # TODO: This may be more efficient by using a "yield" iteration, so as to avoid double iteration (Here and wherever we'd evaluate the values returned here)
+    # This may be more efficient by using a "yield" iteration, so as to avoid double iteration (Here and wherever we'd evaluate the values returned here)
     def get_descendants_list(self):
         all_descendants = []
         direct_descendants = LocationLevel.objects.exclude(parent=None).filter(parent=self)
@@ -60,7 +60,6 @@ class LocationLevel(models.Model):
         return LocationLevel.objects.filter(parent=self.parent, **kwargs)
 
     # Returns a list with direct descendants, with all nested descendants within
-    # https://stackoverflow.com/a/29088221/8417780
     def get_descendants_tree(self):
         direct_descendants = self.get_direct_descendants()
         for descendant in direct_descendants:
@@ -73,20 +72,22 @@ class LocationLevel(models.Model):
         if (self.parent is not None) and (self.parent.client != self.client):
             raise ValidationError(f'The parent LocationLevel must be of the same client')
         
+        if (self.parent is not None) and (self.parent.id == self.id):
+            raise ValidationError(f'Set to reference itself as parent: {self.name}', None, { 'field': 'parent' })
+        
         if self.get_siblings(name=self.name):
-            raise ValidationError(f'A sibling was found with the same name: {self.name}', None, { 'field': 'parent' })
-            # raise ValidationError(f'A sibling was found with the same name: {self.name}') -> Example of _root error
+            raise ValidationError(f'A sibling was found with the same name: {self.name}', None, { 'field': 'name' })
         
         if self.is_root_storage_level:
             print('Checking if ancestors or descendants already have User Scope...')
             ancestors = self.get_ancestors()
             for ancestor in ancestors:
                 if ancestor.is_root_storage_level:
-                    raise ValidationError(f'Another ancestor Level already has User Scope: {ancestor.name}', None, { 'field': 'is_root_storage_level' })
+                    raise ValidationError(f'Another ancestor Level already has User Scope/Root Storage status: {ancestor.name}', None, { 'field': 'is_root_storage_level' })
 
             descendants = self.get_descendants_list()
             for descendant in descendants:
                 if descendant.is_root_storage_level:
-                    raise ValidationError(f'Another descendant Level already has User Scope: {descendant.name}', None, { 'field': 'is_root_storage_level' })
+                    raise ValidationError(f'Another descendant Level already has User Scope /Root Storage status: {descendant.name}', None, { 'field': 'is_root_storage_level' })
 
         super(LocationLevel, self).save(*args, **kwargs)

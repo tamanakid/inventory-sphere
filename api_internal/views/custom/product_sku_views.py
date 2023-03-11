@@ -8,7 +8,7 @@ from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
 from api_internal.serializers import ProductSkuSerializer, ProductSkuDetailSerializer, ProductSkuCreateSerializer
 
-from infra_custom.models import ProductSku, Product
+from infra_custom.models import ProductSku
 
 
 class ProductSkuFilter(filters.FilterSet):
@@ -33,9 +33,9 @@ class ProductSkusBaseView(BaseView):
 		return query
 
 
-# TODO: There will be a need to get all the attributes a product will support:
-# This will encompass attributes related to the product and ALL it's ancestor categories
-# This is likely better in its own endpoint
+# TODO: The need to get all the attributes a product will support may arise in a future requirement:
+# This will encompass attributes related to the product and ALL it's ancestors', and likely better be in its own endpoint
+
 
 class ProductSkusListView(ProductSkusBaseView):
 	filter_backends = (filters.DjangoFilterBackend,)
@@ -48,7 +48,6 @@ class ProductSkusListView(ProductSkusBaseView):
 		product_skus = self.paginator.paginate_queryset(self.filter_queryset(self.get_queryset()), request)
 		serializer = self.get_serializer(product_skus, many=True)
 		return self.paginator.get_paginated_response(serializer.data)
-		# return Response(serializer.data, status=status.HTTP_200_OK)
 
 	def post(self, request):
 		serializer = self.get_serializer(data=request.data)

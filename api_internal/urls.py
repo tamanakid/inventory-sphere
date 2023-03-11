@@ -1,13 +1,11 @@
-from django.urls import path, include
+from django.urls import path
 
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
     TokenRefreshView,
 )
 
-from _app_config.custom_auth import (
+from inventorysphere.custom_auth import (
     CustomTokenObtainPairView,
-    # CustomTokenRefreshView,
 )
 
 from . import views
@@ -15,10 +13,8 @@ from . import views
 
 urlpatterns = [
     # Auth
-    # path('auth/token/', TokenObtainPairView.as_view(), name='internal__token_obtain_pair'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='internal__token_refresh'),
     path('auth/token/', CustomTokenObtainPairView.as_view(), name='internal__token_obtain_pair'),
-    # path('auth/refresh/', CustomTokenRefreshView.as_view(), name='internal__token_refresh'),
 
     # Custom
     path('attributes/', views.AttributesListView.as_view(), name='internal__attributes_list'),
@@ -61,6 +57,4 @@ urlpatterns = [
     path('stock_items/bulk_add/', views.StockItemsBulkAddView.as_view(), name='internal__stock_items_bulk_add'),
     path('stock_items/bulk_update/', views.StockItemsBulkUpdateView.as_view(), name='internal__stock_items_bulk_update'),
     path('stock_items/remove/', views.StockItemsRemoveView.as_view(), name='internal__stock_items_remove'),
-
-    #views.PatientViewSet.reverse_action(views.PatientViewSet.get_residence_users.url_name, args=['1'])
 ]

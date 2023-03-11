@@ -25,10 +25,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-teas8!1p&4x55@+zk3bn23wve^5fka!ixz#2ft2011a5f+b(0x'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# TODO: SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+
+
+CORS_ALLOW_HEADERS = ['Authorization', 'Content-Type']
+CORS_ALLOW_ALL_ORIGINS=True # TODO: This is for demo purposes, and should be removed from a production version
+
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.0/howto/static-files/
+
+STATIC_URL = 'static/'
 
 
 # Application definition
@@ -60,8 +71,9 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware'
 ]
 
-ROOT_URLCONF = '_app_config.urls'
+ROOT_URLCONF = 'inventorysphere.urls'
 
+# Only needed for the admin site
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -78,7 +90,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = '_app_config.wsgi.application'
+WSGI_APPLICATION = 'inventorysphere.wsgi.application'
 
 
 # Database
@@ -142,12 +154,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.0/howto/static-files/
-
-STATIC_URL = 'static/'
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
@@ -157,9 +163,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # DRF Configuration
 
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': '_app_config.response_handlers.api_exception_handler',
+    'EXCEPTION_HANDLER': 'inventorysphere.response_handlers.api_exception_handler',
     'DEFAULT_RENDERER_CLASSES': (
-        '_app_config.response_handlers.APIRenderer',
+        'inventorysphere.response_handlers.APIRenderer',
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer'
     ),
@@ -167,7 +173,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication'
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
+    'PAGE_SIZE': 100,
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
@@ -177,11 +183,10 @@ REST_FRAMEWORK = {
 # JSON Web Tokens simplejwt Configuration
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=600), # minutes=15
-    'REFRESH_TOKEN_LIFETIME': timedelta(hours=8), # hours=2
-    'ROTATE_REFRESH_TOKENS': True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=10),
     'AUTH_HEADER_TYPES': ('Bearer'),
-    'TOKEN_USER_CLASS': '_app_config.custom_auth.CustomTokenUser',
+    'TOKEN_USER_CLASS': 'inventorysphere.custom_auth.CustomTokenUser',
     'SIGNING_KEY': 'AUTHENTICATION PROJECT SECRET KEY',
     'VERIFYING_KEY': 'AUTHENTICATION PROJECT SECRET KEY',
 }

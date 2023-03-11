@@ -5,7 +5,7 @@ from infra_auth.models.user import User
 from infra_stock.models.stock_item import StockItem
 from infra_custom.models.location import Location
 from infra_custom.models.product_sku import ProductSku
-from api_internal.serializers import RecursiveField, ChoiceField, BaseAPIModelSerializer, APIPrimaryKeyRelatedField
+from api_internal.serializers import BaseAPIModelSerializer, APIPrimaryKeyRelatedField
 from api_internal.serializers.custom import LocationFlatSerializer, ProductSkuSerializer
 
 
@@ -18,6 +18,19 @@ class StockItemSerializer(BaseAPIModelSerializer):
 	class Meta:
 		model = StockItem
 		fields = ('id', 'sku', 'location')
+
+
+
+def does_user_have_access_to_locations(location, context):
+	user = User.objects.get(id=context['request'].user.id)
+	if user.role != User.Role.INVENTORY_MANAGER:
+		user_locations = user.locations.all()
+		# If user doesn't have access to the item's rsl, don't show the location within the rsl.
+		rsl_location = location.get_rsl_parent()
+		rsl_location_id = rsl_location.id if rsl_location is not None else None
+		return user_locations.filter(id=rsl_location_id).exists()
+	else:
+		return True
 
 
 class StockItemAmountSerializer(BaseAPIModelSerializer):
@@ -48,14 +61,24 @@ class StockItemAmountSerializer(BaseAPIModelSerializer):
 
 
 
-
-
 class StockItemAddSerializer(serializers.ModelSerializer):
 	id = serializers.IntegerField(required=False)
 
 	class Meta:
 		model = StockItem
 		fields = ('id', 'sku', 'location')
+	
+	def to_representation(self, instance):
+		representation = super().to_representation(instance)
+		representation['sku'] = instance.sku.description
+		representation['location'] = instance.location.full_path
+		return representation
+	
+	def create(self, validated_data):
+		location = validated_data.get('location')
+		if not does_user_have_access_to_locations(location, self.context):
+			raise ValidationError(f'You have no permissions to operate on this Location: {location.get_full_path()}', 'no_permissions', { 'field': 'location' })
+		return super().create(validated_data)
 
 
 class StockItemBulkAddSerializer(serializers.ModelSerializer):
@@ -67,6 +90,10 @@ class StockItemBulkAddSerializer(serializers.ModelSerializer):
 		fields = ('id', 'sku', 'location', 'amount')
 	
 	def create(self, validated_data):
+		location = validated_data.get('location')
+		if not does_user_have_access_to_locations(location, self.context):
+			raise ValidationError(f'You have no permissions to operate on this Location: {location.get_full_path()}', 'no_permissions', { 'field': 'location' })
+		
 		amount = validated_data.pop('amount')
 		for i in range(amount):
 			StockItem.objects.create(**validated_data)
@@ -94,6 +121,11 @@ class StockItemBulkUpdateSerializer(serializers.ModelSerializer):
 		sku = validated_data.pop('sku')
 		location_from = validated_data.pop('location_from')
 		location_to = validated_data.pop('location_to')
+
+		if not does_user_have_access_to_locations(location_from, self.context):
+			raise ValidationError(f'You have no permissions to operate on this Location: {location_from.get_full_path()}', 'no_permissions', { 'field': 'location_from' })
+		if not does_user_have_access_to_locations(location_to, self.context):
+			raise ValidationError(f'You have no permissions to operate on this Location: {location_to.get_full_path()}', 'no_permissions', { 'field': 'location_from' })
 
 		updateable_instances = StockItem.objects.filter(sku=sku, location=location_from)
 		updateable_amount = updateable_instances.count()
@@ -125,6 +157,9 @@ class StockItemRemoveSerializer(serializers.ModelSerializer):
 		amount = validated_data.pop('amount')
 		sku = validated_data.pop('sku')
 		location = validated_data.pop('location')
+
+		if not does_user_have_access_to_locations(location, self.context):
+			raise ValidationError(f'You have no permissions to operate on this Location: {location.get_full_path()}', 'no_permissions', { 'field': 'location' })
 
 		removable_instances = StockItem.objects.filter(sku=sku, location=location)
 		removable_amount = removable_instances.count()

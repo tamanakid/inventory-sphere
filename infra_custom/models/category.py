@@ -66,7 +66,7 @@ class Category(models.Model):
         else:
             return []
     
-    # TODO: This may be more efficient by using a "yield" iteration, so as to avoid double iteration (Here and wherever we'd evaluate the values returned here)
+    # This may be more efficient by using a "yield" iteration, so as to avoid double iteration (Here and wherever we'd evaluate the values returned here)
     def get_descendants_list(self):
         all_descendants = []
         direct_descendants = self.get_direct_descendants()
@@ -84,8 +84,6 @@ class Category(models.Model):
     
     def get_siblings(self, **kwargs):
         return Category.objects.exclude(pk=self.pk).filter(parent=self.parent, **kwargs)
-    
-    # def get_descendants_tree(self) -> if needed, check out LocationLevel
 
     def save(self, *args, **kwargs):
         if (self.parent is not None) and (self.parent.client != self.client):
@@ -93,14 +91,5 @@ class Category(models.Model):
         
         if self.get_siblings(name=self.name):
             raise ValidationError(f'A sibling was found with the same name: {self.name}', None, { 'field': 'parent' })
-        
-        '''
-        TODO: should manually validate if an ancestor already has a related attribute.
-        This scenario should merely continue but provide an "info" formatted message.
-        (i.e. This attribute is already appliable in an ancestor category)
-        EDGE-CASE: The only exception for this is:
-            - that the ancestor's related attribute has is_attribute_required=false AND
-            - that the current related attribute is being set to is_attribute_required=true
-        '''
 
         super(Category, self).save(*args, **kwargs)

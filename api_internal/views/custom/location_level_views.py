@@ -80,33 +80,6 @@ class LocationLevelView(LocationLevelsBaseView):
 		serializer.save()
 		return Response(serializer.data, status=status.HTTP_200_OK)
 
-	'''The following may work for Locations POST requests'''
-	# def create(self, request, *args, **kwargs):
-	# 	root_object = request.data
-	# 	self.create_recursive(root_object, parent_id=root_object.get('parent'))
-	# 	return Response(None, status=status.HTTP_201_CREATED)
-	
-	# def create_recursive(self, obj, *args, **kwargs):
-	# 	parent = LocationLevel.objects.get(pk=kwargs.get('parent_id')) if kwargs.get('parent_id') is not None else None
-	# 	instance = LocationLevel.objects.create(
-	# 		client=self.request.user.client,
-	# 		parent=parent,
-	# 		name=obj.get('name'),
-	# 		is_root_storage_level=obj.get('is_root_storage_level')
-	# 	)
-	# 	instance.save()
-
-	# 	children = obj.get('children')
-	# 	instance_id = instance.id if (instance.id is not None) else 100
-	# 	for child in children:
-	# 		self.create_recursive(child, parent_id=instance_id)
-		
-
-	
-	# def perform_create(self, serializer):
-	# 	serializer.save(client=self.request.user.client)
-	# 	return serializer
-
 
 class LocationLevelsDeleteView(BaseDeleteView, LocationLevelsBaseView):
 	pass

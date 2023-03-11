@@ -1,8 +1,6 @@
 from django.core.exceptions import ValidationError
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import BasePermission
 
 from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
@@ -40,7 +38,6 @@ class AttributeValuesListView(AttributeValuesBaseView):
         attribute_values = self.paginator.paginate_queryset(self.get_queryset(attribute=attribute), request)
         serializer = self.get_serializer(attribute_values, many=True)
         return self.paginator.get_paginated_response(serializer.data)
-        # return Response(serializer.data, status=status.HTTP_200_OK)
 	
     def post(self, request):
         serializer = self.get_serializer(data=request.data)

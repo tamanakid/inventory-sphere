@@ -1,38 +1,14 @@
 from collections import OrderedDict
 from rest_framework import serializers
-from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
 from infra_auth.models.user import User
-from infra_custom.models import Product, Location
+from infra_custom.models import Location
 from api_internal.serializers import BaseAPIModelSerializer, APIPrimaryKeyRelatedField
-from api_internal.serializers.custom.category_serializers import CategoryForeignSerializer
-# from api_internal.serializers.custom.location_serializers import LocationForeignSerializer
-
-
-
-
-# class UserLocationSerializer(serializers.ModelSerializer):
-# 	id = serializers.IntegerField(required=False)
-# 	is_root_storage_level = serializers.ReadOnlyField(source='level.is_root_storage_level')
-
-# 	def to_representation(self, m2m_manager):
-# 		instance = m2m_manager.instance
-# 		representation = super().to_representation(instance)
-# 		# Would need an instance lookup if provided a non-instance object (i.e. as in the POST method)
-# 		if self.context.get('get_full_path_name', False):
-# 			representation['name'] = instance.get_full_path() 
-# 		return representation
-
-# 	class Meta:
-# 		model = Location
-# 		fields = ('id', 'name', 'level', 'is_root_storage_level', 'parent')
-
 
 
 class UserSerializer(BaseAPIModelSerializer):
 	id = serializers.IntegerField(required=False)
-	# locations = UserLocationSerializer()
 
 	def to_representation(self, instance):
 		representation = super().to_representation(instance)
@@ -41,9 +17,6 @@ class UserSerializer(BaseAPIModelSerializer):
 	
 	def _get_user_locations(self, instance):
 		representation = []
-		# user_locations = list(map(lambda ul : ul.location, instance.locations.through.objects.filter(user=instance)))
-		# for user_location in instance.locations.through.objects.filter(user=instance):
-		# 	location = user_location.location
 		for location in instance.locations.filter(user=instance):
 			location_dict = OrderedDict([
 				('id', location.id),
@@ -62,10 +35,11 @@ class UserSerializer(BaseAPIModelSerializer):
 class UserCreateSerializer(BaseAPIModelSerializer):
     id = serializers.IntegerField(required=False)
     location_ids = APIPrimaryKeyRelatedField(queryset=Location.objects.all(), write_only=True, many=True, client_field='level__client')
+    password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'role', 'location_ids')
+        fields = ('id', 'email', 'first_name', 'last_name', 'role', 'location_ids', 'password')
     
     def _check_locations_validity(self, locations, posting_user):
         # Is already enforced by permission classes
@@ -91,6 +65,11 @@ class UserCreateSerializer(BaseAPIModelSerializer):
 
         user = User.objects.create(**validated_data)
 
+        password = validated_data.get('password', None)
+        if password is not None:
+            user.set_password(password)
+        user.save()
+
         for location in locations:
             user.locations.add(location)
         return user
@@ -105,13 +84,13 @@ class UserCreateSerializer(BaseAPIModelSerializer):
 
         super().update(user_instance, validated_data)
 
-        # # Perform creations and updates.
+        # Perform creations and updates.
         for new_loc_id, new_loc in new_locations.items():
             loc = current_locations.get(new_loc_id, None)
             if loc is None:
                 user_instance.locations.add(new_loc)
 
-        # # Perform deletions.
+        # Perform deletions.
         for loc_id, loc in current_locations.items():
             if loc_id not in new_locations:
                 user_instance.locations.remove(loc)

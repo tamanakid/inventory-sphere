@@ -72,21 +72,5 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         if self.category.client != self.client:
             raise ValidationError(f'The Category must be of the same client')
-        
-        '''
-        TODO: should manually validate if an ancestor already has a related attribute.
-        This scenario should merely continue but provide an "info" formatted message.
-        (i.e. This attribute is already appliable in an ancestor category)
-        EDGE-CASE: The only exception for this is:
-            - that the ancestor's related attribute has is_attribute_required=false AND
-            - that the current related attribute is being set to is_attribute_required=true
-        '''
-
-        # This is not needed here, but in the ProductAttribute through model
-        # own_attributes = self.attributes.all()
-        # for attribute_rel in self.get_attribute_relations_list(exclude_own_attributes=True):
-        #     print(f'{attribute_rel.attribute} - {attribute_rel.is_attribute_required}')
-        #     if (attribute_rel.attribute in own_attributes):
-        #         self.attributes.remove(attribute_rel.attribute.id)
 
         super(Product, self).save(*args, **kwargs)

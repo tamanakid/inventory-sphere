@@ -1,26 +1,16 @@
-from collections import OrderedDict
-from logging import Filter
 from django.db.models import Count
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import BasePermission
-from django.core.exceptions import ValidationError
-# TODO: Prolly better to use and handle the DRF ValidationError
-# from rest_framework import exceptions
 import django_filters
 from django_filters import rest_framework as filters
 
 from api_internal.views import BaseView
 from api_internal.permissions import BaseAPIPermission, StorageRolesWriteElseReadOnlyPermission
-from api_internal.serializers.custom import LocationFlatSerializer, ProductSkuSerializer
 from api_internal.serializers.stock import StockItemSerializer, StockItemAddSerializer, StockItemBulkAddSerializer, StockItemBulkUpdateSerializer, StockItemAmountSerializer, StockItemRemoveSerializer
 
 from infra_stock.models.stock_item import StockItem
 from infra_auth.models.user import User
 from infra_custom.models.location import Location
-from infra_custom.models.product_sku import ProductSku
 
 
 

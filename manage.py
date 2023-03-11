@@ -5,7 +5,7 @@ import sys
 
 
 def main():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', '_app_config.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'inventorysphere.settings')
 
     # Added to allow debugging
     # https://testdriven.io/blog/django-debugging-vs-code/

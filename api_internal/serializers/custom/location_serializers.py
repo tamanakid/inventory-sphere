@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from infra_custom.models import Location, LocationLevel
+from infra_custom.models import Location
 from api_internal.serializers import RecursiveField, ChoiceField
 from api_internal.serializers.custom.location_level_serializers import LocationLevelFlatSerializer
 
@@ -13,7 +13,6 @@ class LocationRecursiveField(serializers.Serializer):
 			else self.parent.parent.__class__(value, context=self.context)
 		)
 		return serializer.data
-
 
 
 class LocationFlatSerializer(serializers.ModelSerializer):
@@ -48,8 +47,6 @@ class LocationTreeSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Location
 		fields = ('id', 'name', 'level', 'is_root_storage_level', 'children')
-
-
 
 
 class LocationStructureFlatSerializer(serializers.Serializer):

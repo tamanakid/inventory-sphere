@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
-from infra_custom.models import ProductSku, Attribute, Category, AttributeValue
+from infra_custom.models import ProductSku, Attribute, AttributeValue
 from api_internal.serializers import APIPrimaryKeyRelatedField
 from api_internal.serializers.custom.product_serializers import ProductSerializer
 
@@ -41,7 +41,6 @@ class ProductSkuDetailSerializer(serializers.ModelSerializer):
 					('attribute_id', attribute.id),
 					('name', attribute.name),
 					('is_attribute_required', attribute.categories.through.objects.get(attribute=attribute, category=category).is_attribute_required),
-					# attribute.categoryattribute_set.get(category=category).is_attribute_required
 				])
 				representation.append(attr_dict)
 		for attribute in product.attributes.all():
@@ -49,7 +48,6 @@ class ProductSkuDetailSerializer(serializers.ModelSerializer):
 				('id', attribute.id),
 				('name', attribute.name),
 				('is_attribute_required', attribute.products.through.objects.get(attribute=attribute, product=product).is_attribute_required),
-				# attribute.categoryattribute_set.get(category=category).is_attribute_required
 			])
 			representation.append(attr_dict)
 		return representation
@@ -80,11 +78,6 @@ class ProductSkuCreateSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = ProductSku
 		fields = ('id', 'product', 'description', 'is_valid', 'attribute_value_ids')
-	
-	# def to_internal_value(self, data):
-	# 	category_id = data['category']
-	# 	data['category'] = Category.objects.get(id=category_id)
-	# 	return super().to_internal_value(data)
 
 	def save(self):
 		try:
@@ -111,23 +104,19 @@ class ProductSkuCreateSerializer(serializers.ModelSerializer):
 
 		for attribute_rel in product_category_attributes:
 			if attribute_rel.is_attribute_required and attribute_rel.attribute_id not in attribute_ids:
-				# attr_name = attribute_values.get(id=attribute_rel.attribute_id).name
 				attr_name = Attribute.objects.get(id=attribute_rel.attribute_id).name
 				missing_values_for_attrs.append(attr_name)
 		if len(missing_values_for_attrs) > 0:
-			# raise ValidationError(f'A value must be set for the following attributes: {", ".join(missing_values_for_attrs)}', None, { 'field': 'attribute_values' })
 			is_valid = False
 		
 		'''2. All product_sku.attribute_values are values for a Related Attribute. (This needs not raise an exception, but merely filter them)'''
 		missing_attributes_in_product = [attr_id for attr_id in attribute_ids if attr_id not in product_category_attribute_ids]
 		if len(missing_attributes_in_product) > 0:
 			is_valid = False
-			# raise ValidationError(f'There are non-assignable attribute values', None, { 'field': 'attribute_values' })
 		
 		valid_attribute_values = AttributeValue.objects.filter(id__in=attribute_value_ids).distinct('attribute_id')
 		if len(valid_attribute_values) != len(attribute_values):
 			is_valid = False
-			# raise ValidationError(f'There are duplicate values for a single attribute.', None, { 'field': 'attribute_values' })
 		
 		'''
 		TODO: Check for duplicates of possible RelatedAttributes combinations 
@@ -139,7 +128,6 @@ class ProductSkuCreateSerializer(serializers.ModelSerializer):
 		for sku_attr_value_ids in existing_skus_attribute_values_ids:
 			if len(set(sku_attr_value_ids).symmetric_difference(set(attribute_value_ids))) == 0:
 				is_valid = False
-				# raise ValidationError(f'Another SKU for the same Product has the exact same attribute values.', None, { 'field': 'attribute_values' })
 		
 		instance.attribute_values.set(attribute_value_ids)
 
@@ -149,7 +137,6 @@ class ProductSkuCreateSerializer(serializers.ModelSerializer):
 
 		return instance
 	
-
 	def update(self, instance, validated_data):
 		try:
 			attribute_values = validated_data.pop('attribute_value_ids')

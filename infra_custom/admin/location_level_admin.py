@@ -36,8 +36,6 @@ class LocationLevelAdmin(admin.ModelAdmin):
     )
 
     raw_id_fields = ['client', 'parent']
-    # autocomplete_fields = ['client', 'parent']
-    # search_fields = ['client']
 
     list_filter = ['client']
     list_display = ('name', 'client', 'parent', 'is_root_storage_level')
