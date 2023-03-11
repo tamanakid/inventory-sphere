@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
-from infra_custom.models import Product, Attribute, Category
+from infra_custom.models import Product, Attribute
 from api_internal.serializers import BaseAPIModelSerializer, APIPrimaryKeyRelatedField
 from api_internal.serializers.custom.category_serializers import CategoryForeignSerializer
 
@@ -36,7 +36,6 @@ class ProductDetailSerializer(BaseAPIModelSerializer):
 					('id', attribute.id),
 					('name', attribute.name),
 					('is_attribute_required', attribute.categories.through.objects.get(attribute=attribute, category=category).is_attribute_required),
-					# attribute.categoryattribute_set.get(category=category).is_attribute_required
 				])
 				representation.append(attr_dict)
 		for attribute in product.attributes.all():
@@ -44,7 +43,6 @@ class ProductDetailSerializer(BaseAPIModelSerializer):
 				('id', attribute.id),
 				('name', attribute.name),
 				('is_attribute_required', attribute.products.through.objects.get(attribute=attribute, product=product).is_attribute_required),
-				# attribute.categoryattribute_set.get(category=category).is_attribute_required
 			])
 			representation.append(attr_dict)
 		return representation
@@ -63,11 +61,6 @@ class ProductCreateSerializer(BaseAPIModelSerializer):
 		model = Product
 		fields = ('id', 'name', 'brand', 'category', 'attribute_ids_required', 'attribute_ids_not_required')
 	
-	# def to_internal_value(self, data):
-	# 	category_id = data['category']
-	# 	data['category'] = Category.objects.get(id=category_id)
-	# 	return super().to_internal_value(data)
-
 	def _set_attributes_required_flag(self, product, attributes_required, attributes_not_required):
 		product_attributes = product.attributes.through.objects.filter(product=product)
 
@@ -98,7 +91,6 @@ class ProductCreateSerializer(BaseAPIModelSerializer):
 
 		# # Perform deletions.
 		for attr_id, attr in current_attrs.items():
-			# if attr_id not in new_attrs:
 			instance.attributes.remove(attr)
 		
 		updated_instance_attrs = { attr.id: attr for attr in instance.get_all_attributes_qs() }

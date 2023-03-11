@@ -1,13 +1,7 @@
 from collections import OrderedDict
-from logging import Filter
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import BasePermission
 from django.core.exceptions import ValidationError
-# TODO: Prolly better to use and handle the DRF ValidationError
-# from rest_framework import exceptions
 
 from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, ManagerRolesWriteElseReadOnlyPermission
@@ -44,7 +38,8 @@ class LocationsListView(LocationsBaseView):
 		return LocationFlatSerializer if self.request.method == 'GET' else LocationFlatSerializer
 
 	def get(self, request):
-		locations = self.paginator.paginate_queryset(self.get_queryset(root_storage_only=True), request)
+		is_all_locations = self.request.query_params.get('all', None) == 'true'
+		locations = self.paginator.paginate_queryset(self.get_queryset(root_storage_only=(not is_all_locations)), request)
 		# Test how to paginate tree lists
 		serializer = self.get_serializer(locations, many=True, context={'get_full_path_name': True})
 		return self.paginator.get_paginated_response(serializer.data)
@@ -61,23 +56,13 @@ class LocationsListView(LocationsBaseView):
 
 		serializer = LocationStructureSerializer(data=raw_data)
 		serializer.is_valid(raise_exception=True)
-		# instance = serializer.save()
-
+		
 		data = serializer.validated_data
 		instance = Location.objects.create(
 			name=data.get('name'),
 			level=data.get('level'),
 			parent=data.get('parent'),
 		)
-
-		# Alternative to saving: 181 DB queries vs 162
-		# instance_serializer = LocationFlatSerializer(data={
-		# 	'name': data.get('name'),
-		# 	'level': data.get('level').id,
-		# 	'parent': data.get('parent').id,
-		# })
-		# instance_serializer.is_valid(raise_exception=True)
-		# instance = instance_serializer.save()
 
 		created_instances.append({ 'name': instance.name, 'parent': instance.parent.id, 'level': instance.level.id, 'id': instance.id })
 
@@ -87,7 +72,6 @@ class LocationsListView(LocationsBaseView):
 			child_explicit_level = child_structure.get('level')
 			child_levels = data.get('level').get_direct_descendants()
 			if child_explicit_level is None and child_levels.count() > 1:
-				# raise exceptions.ValidationError(details=)
 				raise ValidationError(f'The parent LocationLevel must be of the same client')
 			
 			child_level = child_levels.first() if child_levels.count() == 1 else LocationLevel.objects.get(id=child_explicit_level)
@@ -116,7 +100,6 @@ class LocationsTreeView(LocationsBaseView):
     def get(self, request):
         all_locations = request.query_params.get('all_locations', '').lower() == 'true'
         locations = self.get_queryset(root_only=True)
-		# Test how to paginate tree lists
         serializer = self.get_serializer(locations, many=True, context={'all_locations': all_locations})
         return Response(serializer.data, status=status.HTTP_200_OK)
 

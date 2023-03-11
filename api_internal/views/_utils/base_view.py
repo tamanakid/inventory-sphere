@@ -1,6 +1,5 @@
 from django.utils.functional import cached_property
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import BasePermission
 from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 
 from infra_auth.models import Client

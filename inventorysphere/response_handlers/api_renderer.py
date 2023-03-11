@@ -6,7 +6,7 @@ from rest_framework import exceptions as drf_exceptions
 
 http_status_dict = { status.value: status.description for status in HTTPStatus }
 
-# https://stackoverflow.com/a/48956238
+
 class APIRenderer(JSONRenderer):
     
     def render(self, data, accepted_media_type=None, renderer_context=None):
@@ -28,9 +28,8 @@ class APIRenderer(JSONRenderer):
 
         else:
             raise drf_exceptions.APIException('Response Data must be either a Dictionary or List')
-
-        # TODO: Evaluate whether it is necessary to send the status code and message as part of the response body
-        # It's likely not: This info is part of the response headers
+        
+        # The status code is also part of the response headers
         status_code = renderer_context.get('response').status_code
 
         response_data = {
@@ -39,9 +38,7 @@ class APIRenderer(JSONRenderer):
             'data': data_without_errors,
             'errors': errors,
         }
-
-        # getattr(renderer_context.get('view').get_serializer().Meta, 'resource_name', 'objects')
-
+        
         # call super to render the response
         response = super(APIRenderer, self).render(response_data, accepted_media_type, renderer_context)
 

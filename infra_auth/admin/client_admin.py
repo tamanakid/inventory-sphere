@@ -4,7 +4,6 @@ from infra_auth.models import Client
 from infra_auth.admin.user_admin import UserInline
 
 
-# @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     def __str__(self):
         return self.name
@@ -19,7 +18,6 @@ class ClientAdmin(admin.ModelAdmin):
     '''
     inlines = [UserInline]
     ordering = ['name']
-    # search_fields = ['name']
 
 
 admin.site.register(Client, ClientAdmin)

@@ -1,8 +1,7 @@
-from wsgiref import validate
 from collections import OrderedDict
 from rest_framework import serializers
 
-from infra_custom.models import Category, Attribute, CategoryAttribute
+from infra_custom.models import Category, Attribute
 from api_internal.serializers import RecursiveField, BaseAPIModelSerializer, APIPrimaryKeyRelatedField
 from api_internal.serializers.custom.attribute_serializers import AttributeSerializer
 
@@ -20,7 +19,6 @@ class CategoryBaseSerializer(BaseAPIModelSerializer):
                 ('id', attribute.id),
                 ('name', attribute.name),
                 ('is_attribute_required', attribute.categories.through.objects.get(attribute=attribute, category=category).is_attribute_required),
-                # attribute.categoryattribute_set.get(category=category).is_attribute_required
             ])
             representation.append(attr_dict)
         return representation
@@ -54,12 +52,11 @@ class CategoryFlatSerializer(CategoryBaseSerializer):
         new_attrs_required = { attr.id: attr for attr in validated_data.pop('attribute_ids_required') }
         new_attrs_not_required = { attr.id: attr for attr in validated_data.pop('attribute_ids_not_required') }
 
-        # # Perform deletions.
+        # Perform deletions.
         for attr_id, attr in current_attrs.items():
-            # if attr_id not in new_attrs_required and attr_id not in new_attrs_not_required:
             instance.attributes.remove(attr)
         
-        # # Perform re-creations
+        # Perform re-creations
         for attribute in new_attrs_required:
             instance.attributes.add(attribute)
         for attribute in new_attrs_not_required:

@@ -1,3 +1,4 @@
+from django.apps import apps
 from rest_framework import serializers, status
 from rest_framework.response import Response
 
@@ -5,9 +6,9 @@ from .base_view import BaseView
 
 
 class BaseDeleteSerializer(serializers.Serializer):
-    def to_representation(self, instances):
-        representation = super().to_representation(instances)
-        representation['instances_deleted'] = len(instances)
+    def to_representation(self, instances_deleted):
+        representation = super().to_representation(instances_deleted)
+        representation['instances_deleted'] = instances_deleted
         return representation
 
 
@@ -27,8 +28,16 @@ class BaseDeleteView(BaseView):
             serializer = self.get_serializer([])
             return Response(serializer.data, status=status.HTTP_404_NOT_FOUND)
 
+        instances_deleted = 0
         for instance in instances:
-            instance.delete()
+            delete_result = instance.delete()
+            # Must detect which of the deleted instances are actually of the model/feature being deleted
+            # The total count includes 1:M or N:M relationships deletions
+            for model_full_name, model_delete_count in delete_result[1].items():
+                [app_label, model_name] = model_full_name.split('.')
+                instance_model = apps.get_model(app_label=app_label, model_name=model_name)
+                if type(instance) == instance_model:
+                    instances_deleted += model_delete_count
         
-        serializer = self.get_serializer(instances)
+        serializer = self.get_serializer(instances_deleted)
         return Response(serializer.data, status=status.HTTP_200_OK)

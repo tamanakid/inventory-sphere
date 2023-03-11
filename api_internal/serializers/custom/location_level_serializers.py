@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from infra_custom.models import LocationLevel
-from api_internal.serializers import RecursiveField, BaseAPISerializer, BaseAPIModelSerializer
+from api_internal.serializers import RecursiveField, BaseAPIModelSerializer
 
 
 class LocationLevelFlatSerializer(BaseAPIModelSerializer):

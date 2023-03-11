@@ -1,13 +1,7 @@
 from collections import OrderedDict
 from logging import Filter
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import BasePermission
-from django.core.exceptions import ValidationError
-# TODO: Prolly better to use and handle the DRF ValidationError
-# from rest_framework import exceptions
 
 import django_filters
 from django_filters import rest_framework as filters
@@ -16,7 +10,7 @@ from api_internal.views import BaseView, BaseDeleteView
 from api_internal.permissions import BaseAPIPermission, InventoryManagerWriteElseReadOnlyPermission
 from api_internal.serializers import CategoryFlatSerializer, CategoryListSerializer, CategoryTreeSerializer, CategoryDetailsSerializer
 
-from infra_custom.models import Category, Attribute, CategoryAttribute
+from infra_custom.models import Category
 
 
 
@@ -72,7 +66,6 @@ class CategoriesTreeView(CategoriesBaseView):
     
     def get(self, request):
         categories = self.get_queryset(root_only=True)
-		# Test how to paginate tree lists
         serializer = self.get_serializer(categories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

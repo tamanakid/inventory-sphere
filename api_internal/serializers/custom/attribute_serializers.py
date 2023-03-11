@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from infra_custom.models import Attribute, AttributeValue
+from infra_custom.models import Attribute
 from api_internal.serializers import BaseAPIModelSerializer
 from api_internal.serializers.custom.attribute_value_serializers import AttributeValueGetSerializer
 

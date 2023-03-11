@@ -1,14 +1,5 @@
-from collections import OrderedDict
-from logging import Filter
-from django.db.models import Count
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import BasePermission
-from django.core.exceptions import ValidationError
-# TODO: Prolly better to use and handle the DRF ValidationError
-# from rest_framework import exceptions
 import django_filters
 from django_filters import rest_framework as filters
 
@@ -17,9 +8,7 @@ from api_internal.permissions import BaseAPIPermission, ManagerRolesPermission
 from api_internal.serializers.custom import UserSerializer, UserCreateSerializer
 
 from infra_auth.models.user import User
-from infra_stock.models.stock_item import StockItem
 from infra_custom.models.location import Location
-from infra_custom.models.product_sku import ProductSku
 
 
 
@@ -29,7 +18,7 @@ class UserFilter(filters.FilterSet):
     last_name = django_filters.CharFilter(field_name='last_name', lookup_expr='icontains')
     role = django_filters.CharFilter(field_name='role', lookup_expr='exact')
     locations = django_filters.ModelMultipleChoiceFilter(
-        field_name='location__id',
+        field_name='locations__id',
         to_field_name='id',
         queryset=Location.objects.filter(level__is_root_storage_level=True)
     )
@@ -82,8 +71,7 @@ class UsersListView(UsersBaseView):
 
 class UsersView(UsersBaseView):
 	lookup_url_kwarg = 'id'
-
-	# UserDetailSerializer
+	
 	def get_serializer_class(self):
 		return UserSerializer if self.request.method == 'GET' else UserCreateSerializer
 

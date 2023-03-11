@@ -25,10 +25,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-teas8!1p&4x55@+zk3bn23wve^5fka!ixz#2ft2011a5f+b(0x'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# TODO: SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+
+
+CORS_ALLOW_HEADERS = ['Authorization', 'Content-Type']
+CORS_ALLOW_ALL_ORIGINS=True # TODO: This is for demo purposes, and should be removed from a production version
+
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.0/howto/static-files/
+
+STATIC_URL = 'static/'
 
 
 # Application definition
@@ -39,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
     'django_filters',
@@ -161,7 +173,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTTokenUserAuthentication'
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
+    'PAGE_SIZE': 100,
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
@@ -171,8 +183,8 @@ REST_FRAMEWORK = {
 # JSON Web Tokens simplejwt Configuration
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=600), # minutes=30
-    'REFRESH_TOKEN_LIFETIME': timedelta(hours=8), # hours=10
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=10),
     'AUTH_HEADER_TYPES': ('Bearer'),
     'TOKEN_USER_CLASS': 'inventorysphere.custom_auth.CustomTokenUser',
     'SIGNING_KEY': 'AUTHENTICATION PROJECT SECRET KEY',

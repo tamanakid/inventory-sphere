@@ -1,8 +1,5 @@
 from django.db import models
 
-from infra_custom.models.location import Location
-from infra_custom.models.product_sku import ProductSku
-
 
 class StockItem(models.Model):
     sku = models.ForeignKey(

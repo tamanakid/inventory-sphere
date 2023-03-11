@@ -1,8 +1,6 @@
 from rest_framework import serializers
 
-from infra_custom.models import Attribute, AttributeValue
-from api_internal.serializers import RecursiveField, ChoiceField
-from api_internal.serializers.custom.location_level_serializers import LocationLevelFlatSerializer
+from infra_custom.models import AttributeValue
 from django.core.exceptions import ValidationError
 
 
