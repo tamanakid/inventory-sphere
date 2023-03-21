@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
       {
-        "name": "Run Django",
+        "name": "Run InventorySphere Django API",
         "type": "python",
         "request": "attach",
         "justMyCode": false,
